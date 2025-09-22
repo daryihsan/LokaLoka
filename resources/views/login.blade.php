@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Loka Loka</title>
     <style>
-        /* Import Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&family=Roboto:wght@400;700&family=Open+Sans:wght@400&display=swap');
 
-        /* Basic Styles */
         body {
             font-family: 'Open Sans', sans-serif;
             background-color: #e3d8c2;
@@ -19,7 +17,6 @@
             margin: 0;
         }
 
-        /* Main Container */
         .login-wrapper {
             display: flex;
             width: 100%;
@@ -28,10 +25,9 @@
             background-color: #ffffff;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            overflow: hidden; /* Ensures content respects the border-radius */
+            overflow: hidden;
         }
 
-        /* --- Info Panel (Left Side) --- */
         .info-panel {
             flex: 1;
             background-color: #5c6641;
@@ -59,7 +55,6 @@
             line-height: 1.6;
         }
         
-        /* --- Form Panel (Right Side) --- */
         .form-panel {
             flex: 1;
             padding: 50px;
@@ -81,7 +76,26 @@
             margin-bottom: 30px;
         }
         
-        /* Input Group with Icons */
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            font-size: 0.9em;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            font-size: 0.9em;
+        }
+        
         .input-group {
             position: relative;
             margin-bottom: 25px;
@@ -97,7 +111,7 @@
 
         .input-group input {
             width: 100%;
-            padding: 12px 15px 12px 45px; /* Left padding for icon */
+            padding: 12px 15px 12px 45px;
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
@@ -112,7 +126,6 @@
             box-shadow: 0 0 8px rgba(92, 102, 65, 0.3);
         }
 
-        /* Login Button */
         button {
             width: 100%;
             padding: 14px;
@@ -129,10 +142,9 @@
 
         button:hover {
             background-color: #4a5335;
-            transform: translateY(-2px); /* Slight lift effect */
+            transform: translateY(-2px);
         }
 
-        /* Footer Link */
         .footer-link {
             margin-top: 25px;
             text-align: center;
@@ -149,7 +161,6 @@
             text-decoration: underline;
         }
         
-        /* --- Responsive Design for Mobile --- */
         @media (max-width: 800px) {
             .login-wrapper {
                 flex-direction: column;
@@ -164,11 +175,9 @@
                 padding: 30px 40px;
             }
         }
-
     </style>
 </head>
 <body>
-
     <div class="login-wrapper">
         <div class="info-panel">
             <h1>Loka Loka</h1>
@@ -179,12 +188,27 @@
             <h2>Selamat Datang Kembali!</h2>
             <p class="subtitle">Silakan masuk ke akun Anda</p>
             
-            <form action="proses_login.php" method="POST">
+            @if (session('success'))
+                <div class="success-message">
+                    {{ session('success') }}
+                </div>
+            @endif
+            
+            @if ($errors->any())
+                <div class="error-message">
+                    @foreach ($errors->all() as $error)
+                        {{ $error }}<br>
+                    @endforeach
+                </div>
+            @endif
+            
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
                 <div class="input-group">
                     <span class="icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </span>
-                    <input type="text" name="username" placeholder="Username atau Email" required>
+                    <input type="text" name="email" placeholder="Username atau Email" value="{{ old('email') }}" required>
                 </div>
                 <div class="input-group">
                     <span class="icon">
@@ -196,10 +220,9 @@
             </form>
 
             <div class="footer-link">
-                Belum punya akun? <a href="register.html">Daftar di sini</a>
+                Belum punya akun? <a href="{{ route('register') }}">Daftar di sini</a>
             </div>
         </div>
     </div>
-
 </body>
 </html>

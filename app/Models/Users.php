@@ -11,6 +11,13 @@ class Users extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'users';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -48,11 +55,22 @@ class Users extends Authenticatable
     }
 
     /**
+     * Get the name of the password field.
+     * Since we're using 'password_hash' instead of 'password'
+     *
+     * @return string
+     */
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
+    /**
      * Get the carts for the user.
      */
     public function carts()
     {
-        return $this->hasMany(Cart::class);
+        return $this->hasMany(Carts::class, 'user_id');
     }
 
     /**
@@ -60,6 +78,6 @@ class Users extends Authenticatable
      */
     public function orders()
     {
-        return $this->hasMany(Order::class);
+        return $this->hasMany(Orders::class, 'user_id');
     }
 }
