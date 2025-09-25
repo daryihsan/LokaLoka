@@ -249,7 +249,7 @@
                     <strong>John Doe</strong>
                     <p>(+62) 812-3456-7890</p>
                     <p>Jl. Pahlawan No. 123, Mugassari, Kec. Semarang Sel., Kota Semarang, Jawa Tengah 50243</p>
-                    <a href="#" class="change-link">Ubah Alamat</a>
+                    <a href="ubah-alamat.html" class="change-link">Ubah Alamat</a>
                 </div>
             </div>
 

@@ -22,6 +22,9 @@ Route::middleware('web')->group(function () {
     Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/ubah-alamat', function () {
+        return view('ubah-alamat');
+    });
 });
 
 // Remove duplicate routes - these are causing conflicts
