@@ -100,8 +100,8 @@
                             <p class="font-semibold text-green-darker">{{ $user->name ?? 'User' }}</p>
                             <p class="text-sm text-gray-500">{{ $user->email ?? '' }}</p>
                         </div>
-                        <a href="#" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Profile</a>
-                        <a href="#" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Pesanan</a>
+                        <a href="{{ route('profile') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Profile</a>
+                        <a href="{{ route('orders') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Pesanan</a>
                         <hr class="my-2">
                         <a href="{{ route('logout') }}" class="block px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Logout</a>
                     </div>
@@ -237,7 +237,7 @@
                 html += '<button class="bg-primary hover:bg-primary-dark text-white rounded-full p-2">';
                 html += '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">';
                 html += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m.6 8L6 18h12M6 18a2 2 0 100 4 2 2 0 000-4zM16 18a2 2 0 100 4 2 2 0 000-4z"></path>';
-                html += '</svg></button></div></div></div></div></div>';
+                html += '</svg></button></div></div></div></div>';
                 
                 return html;
             }
