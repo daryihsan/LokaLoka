@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AlamatController;
 
 // Redirect root to login
 Route::get('/', function() {
@@ -22,9 +23,11 @@ Route::middleware('web')->group(function () {
     Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/ubah-alamat', function () {
-        return view('ubah-alamat');
+    Route::get('/alamat', function () {
+        return view('alamat');
     });
+    Route::get('/alamat', [AlamatController::class, 'showForm'])->name('alamat.form');
+    Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat.update');
 });
 
 // Remove duplicate routes - these are causing conflicts
