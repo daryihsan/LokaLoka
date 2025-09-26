@@ -42,8 +42,8 @@ class AuthController extends Controller
 
         // Find user by email or name
         $user = Users::where('email', $request->email)
-                    ->orWhere('name', $request->email)
-                    ->first();
+                       ->orWhere('name', $request->email)
+                       ->first();
 
         if ($user && Hash::check($request->password, $user->password_hash)) {
             // Login successful - start session
@@ -203,5 +203,25 @@ class AuthController extends Controller
         // $orders = Orders::where('user_id', $userId)->get();
         
         return view('orders', ['orders' => [], 'user' => $user]);
+    }
+
+    /**
+     * Show checkout page
+     * INI FUNGSI YANG DITAMBAHKAN
+     */
+    public function showCheckout()
+    {
+        if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
+            return redirect()->route('login');
+        }
+
+        $user = Users::find(Session::get('user_id'));
+        
+        if (!$user) {
+            Session::flush();
+            return redirect()->route('login')->withErrors(['error' => 'User tidak ditemukan.']);
+        }
+        
+        return view('checkout', compact('user'));
     }
 }

@@ -13,20 +13,17 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
 
-// Protected routes - these should check authentication in controller
-Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage');
-Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/register', [AuthController::class, 'processRegister']);
 
-Route::get('/adminDash', function () {
-    return view('adminDash');
-});
-
-Route::get('/product', function () {
-    return view('product');
+// Protected routes (require authentication)
+Route::middleware('web')->group(function () {
+    Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage');
+    Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
+    Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
+    Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    
 });
 
 // Remove duplicate routes - these are causing conflicts
