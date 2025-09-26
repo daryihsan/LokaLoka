@@ -18,6 +18,8 @@ Route::post('/register', [AuthController::class, 'processRegister'])->name('regi
 
 // Protected routes - these should check authentication in controller
 Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage');
+    Route::get('/searchfilter', [AuthController::class, 'showSearchFilter'])->name('searchfilter');
+    Route::get('/cart', [AuthController::class, 'showCart'])->name('cart');
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
