@@ -785,25 +785,35 @@
             const { selectedCount } = calculateTotal();
             
             if (Object.keys(cartData).length === 0) {
-                alert('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.');
+                // Menggunakan modal kustom untuk notifikasi
+                showConfirmModal('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.', true);
                 return;
             }
             
             if (selectedCount === 0) {
-                alert('Pilih minimal satu produk untuk checkout!');
+                // Menggunakan modal kustom untuk notifikasi
+                showConfirmModal('Pilih minimal satu produk untuk checkout!', true);
                 return;
             }
             
-            // Get selected items for checkout
+            // 1. Ambil semua item yang dipilih oleh pengguna
             const selectedItems = Object.keys(cartData)
                 .filter(key => cartData[key].selected)
                 .map(key => ({
                     id: key,
-                    ...cartData[key]
+                    name: cartData[key].name,
+                    price: cartData[key].price,
+                    quantity: cartData[key].quantity,
+                    image: cartData[key].image
                 }));
             
-            console.log('Items to checkout:', selectedItems);
-            alert(`Checkout ${selectedCount} produk - Total: ${formatRupiah(calculateTotal().total)}`);
+            // 2. Simpan data item yang dipilih ke sessionStorage browser
+            // JSON.stringify mengubah objek JavaScript menjadi teks JSON agar bisa disimpan
+            sessionStorage.setItem('checkoutItems', JSON.stringify(selectedItems));
+            
+            // 3. Arahkan (redirect) pengguna ke halaman checkout
+            // Kita menggunakan Blade helper {{ route('checkout') }} untuk mendapatkan URL yang benar
+            window.location.href = `{{ route('checkout') }}`;
         }
 
         // Render cart items
