@@ -263,8 +263,6 @@
                 productListContainer.insertAdjacentHTML('beforeend', productItemHTML);
             });
 
-            // Hapus data dari session storage agar tidak digunakan lagi jika halaman di-refresh
-            sessionStorage.removeItem('checkoutItems');
 
         } else {
             productListContainer.innerHTML = '<p style="text-align: center; color: #666;">Tidak ada item untuk di-checkout.</p>';
