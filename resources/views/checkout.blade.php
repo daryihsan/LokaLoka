@@ -177,17 +177,6 @@
             <div class="card">
                 <h1>Ringkasan Pesanan</h1>
                 <div class="product-list">
-                    <div class="product-item" data-price="120000">
-                        <img src="https://placehold.co/70x70/e3d8c2/5c6641?text=Produk" alt="Kopi Lokal">
-                        <div class="product-details">
-                            <h3>Kopi Gayo Robusta</h3>
-                            <p>Rp120.000</p>
-                        </div>
-                        <div class="product-quantity">
-                           <input type="number" class="quantity-input" value="1" min="1">
-                        </div>
-                        <div class="product-price">Rp120.000</div>
-                    </div>
                     </div>
                 <div class="summary-calculation">
                     <div class="summary-row">
@@ -246,22 +235,66 @@
             document.getElementById('summary-total').innerText = formatRupiah(total);
         }
 
-        // Ambil semua elemen yang bisa memicu kalkulasi ulang
+        document.addEventListener('DOMContentLoaded', function() {
+        const productListContainer = document.querySelector('.product-list');
+        // Ambil data dari sessionStorage yang dikirim dari halaman keranjang
+        const itemsFromCart = JSON.parse(sessionStorage.getItem('checkoutItems'));
+
+        if (itemsFromCart && itemsFromCart.length > 0) {
+            // Kosongkan kontainer list produk
+            productListContainer.innerHTML = '';
+
+            // Loop setiap item dan buat elemen HTML-nya
+            itemsFromCart.forEach(item => {
+                const productItemHTML = `
+                    <div class="product-item" data-price="${item.price}">
+                        <img src="${item.image}" alt="${item.name}" onerror="this.src='https://placehold.co/70x70/e3d8c2/5c6641?text=Produk'">
+                        <div class="product-details">
+                            <h3>${item.name}</h3>
+                            <p>${formatRupiah(item.price)}</p>
+                        </div>
+                        <div class="product-quantity">
+                           <input type="number" class="quantity-input" value="${item.quantity}" min="1">
+                        </div>
+                        <div class="product-price">${formatRupiah(item.price * item.quantity)}</div>
+                    </div>
+                `;
+                // Masukkan HTML produk ke dalam kontainer
+                productListContainer.insertAdjacentHTML('beforeend', productItemHTML);
+            });
+
+            // Hapus data dari session storage agar tidak digunakan lagi jika halaman di-refresh
+            sessionStorage.removeItem('checkoutItems');
+
+        } else {
+            productListContainer.innerHTML = '<p style="text-align: center; color: #666;">Tidak ada item untuk di-checkout.</p>';
+        }
+
+        // Pasang event listener ke elemen yang ada atau baru dibuat
+        setupEventListeners();
+        // Panggil kalkulasi ulang untuk pertama kali
+        recalculateTotals();
+    });
+
+    function setupEventListeners() {
         const shippingOptions = document.querySelectorAll('.shipping-option');
         const quantityInputs = document.querySelectorAll('.quantity-input');
 
-        // Tambahkan event listener untuk setiap pilihan pengiriman
         shippingOptions.forEach(option => {
-            option.addEventListener('click', recalculateTotals);
+            option.addEventListener('change', recalculateTotals);
         });
 
-        // Tambahkan event listener untuk setiap input kuantitas
         quantityInputs.forEach(input => {
             input.addEventListener('input', recalculateTotals);
         });
 
-        // Panggil fungsi sekali saat halaman dimuat untuk memastikan total awal benar
-        document.addEventListener('DOMContentLoaded', recalculateTotals);
-    </script>
+        document.querySelector('.checkout-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            const totalText = document.getElementById('summary-total').innerText;
+            const totalValue = parseInt(totalText.replace(/[^0-9]/g, ''));
+            window.location.href = `{{ route('payment') }}?total=${totalValue}`;
+        });
+    }
+</script>
 </body>
 </html>

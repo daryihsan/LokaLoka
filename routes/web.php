@@ -43,6 +43,13 @@ Route::get('/editProduct', function () {
 Route::get('/keranjang', function () {
     return view('keranjang');
 });
+
+Route::get('/payment', function () {
+    // Pastikan 'qris_payment' sesuai dengan nama file Anda
+    return view('payment'); 
+})->name('payment'); // <--- INI BAGIAN YANG PALING PENTING
+
+
 // Remove duplicate routes - these are causing conflicts
 // Route::get('/', function () {
 //     return view('welcome');
