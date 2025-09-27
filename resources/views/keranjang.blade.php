@@ -137,6 +137,21 @@
             padding: 1.2rem 2rem;
             font-size: 1.1rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .select-all-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #B8C951;
         }
         
         .cart-item {
@@ -153,6 +168,10 @@
         .cart-item:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .cart-item.unchecked {
+            opacity: 0.6;
         }
         
         .item-checkbox {
@@ -258,11 +277,27 @@
             text-align: right;
         }
         
+        .cart-summary-details {
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
         .total-price {
             font-size: 1.4rem;
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            border-top: 2px solid #ddd;
+            padding-top: 1rem;
         }
         
         .checkout-btn {
@@ -281,6 +316,13 @@
         .checkout-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(107, 124, 52, 0.4);
+        }
+        
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .empty-cart {
@@ -498,12 +540,18 @@
             .container {
                 padding: 0 1rem;
             }
+            
+            .summary-item {
+                font-size: 0.9rem;
+            }
+            
+            .total-price {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
-
-
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
@@ -544,13 +592,22 @@
                 name: 'Kopi Gayo',
                 price: 32000,
                 image: 'kopi-gayo.jpg',
-                quantity: 1
+                quantity: 1,
+                selected: true
             },
             '2': {
-                name: 'Matcha',
+                name: 'Matcha Premium',
                 price: 28000,
                 image: 'matcha.jpg',
-                quantity: 2
+                quantity: 2,
+                selected: true
+            },
+            '3': {
+                name: 'Teh Herbal',
+                price: 15000,
+                image: 'teh-herbal.jpg',
+                quantity: 1,
+                selected: false
             }
         };
 
@@ -612,13 +669,60 @@
             }, 3000);
         }
 
-        // Calculate total price
+        // Calculate total price (only selected items)
         function calculateTotal() {
             let total = 0;
+            let selectedCount = 0;
+            
             Object.values(cartData).forEach(item => {
-                total += item.price * item.quantity;
+                if (item.selected) {
+                    total += item.price * item.quantity;
+                    selectedCount++;
+                }
             });
-            return total;
+            
+            return { total, selectedCount };
+        }
+
+        // Toggle item selection
+        function toggleItemSelection(productId) {
+            if (cartData[productId]) {
+                cartData[productId].selected = !cartData[productId].selected;
+                renderCart();
+                updateSelectAllCheckbox();
+            }
+        }
+
+        // Toggle select all
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const shouldSelectAll = selectAllCheckbox.checked;
+            
+            Object.keys(cartData).forEach(productId => {
+                cartData[productId].selected = shouldSelectAll;
+            });
+            
+            renderCart();
+        }
+
+        // Update select all checkbox state
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (!selectAllCheckbox) return;
+            
+            const totalItems = Object.keys(cartData).length;
+            const selectedItems = Object.values(cartData).filter(item => item.selected).length;
+            
+            if (selectedItems === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedItems === totalItems) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
         }
 
         // Update quantity
@@ -634,6 +738,7 @@
                     if (confirmed) {
                         delete cartData[productId];
                         renderCart();
+                        updateSelectAllCheckbox();
                         showNotification('Produk dihapus dari keranjang');
                     } else {
                         renderCart();
@@ -655,6 +760,7 @@
                     if (confirmed) {
                         delete cartData[productId];
                         renderCart();
+                        updateSelectAllCheckbox();
                         showNotification('Produk dihapus dari keranjang');
                     } else {
                         renderCart();
@@ -669,33 +775,35 @@
             if (confirmed) {
                 delete cartData[productId];
                 renderCart();
+                updateSelectAllCheckbox();
                 showNotification('Produk dihapus dari keranjang');
             }
         }
 
-        // Add to cart
-        function addToCart(productId, productName, productPrice, productImage = 'default.jpg') {
-            if (cartData[productId]) {
-                cartData[productId].quantity++;
-            } else {
-                cartData[productId] = {
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    quantity: 1
-                };
-            }
-            renderCart();
-            showNotification(`${productName} ditambahkan ke keranjang`);
-        }
-
         // Go to checkout
         function goToCheckout() {
+            const { selectedCount } = calculateTotal();
+            
             if (Object.keys(cartData).length === 0) {
                 alert('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.');
                 return;
             }
-            alert('Menuju halaman checkout...');
+            
+            if (selectedCount === 0) {
+                alert('Pilih minimal satu produk untuk checkout!');
+                return;
+            }
+            
+            // Get selected items for checkout
+            const selectedItems = Object.keys(cartData)
+                .filter(key => cartData[key].selected)
+                .map(key => ({
+                    id: key,
+                    ...cartData[key]
+                }));
+            
+            console.log('Items to checkout:', selectedItems);
+            alert(`Checkout ${selectedCount} produk - Total: ${formatRupiah(calculateTotal().total)}`);
         }
 
         // Render cart items
@@ -716,6 +824,10 @@
 
             let cartHTML = `
                 <div class="cart-header">
+                    <div class="select-all-container">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        <label for="selectAllCheckbox">Pilih Semua</label>
+                    </div>
                     Kopi Tuku
                 </div>
             `;
@@ -724,13 +836,18 @@
                 const item = cartData[productId];
                 
                 cartHTML += `
-                    <div class="cart-item">
+                    <div class="cart-item ${!item.selected ? 'unchecked' : ''}">
                         <div class="item-checkbox">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" ${item.selected ? 'checked' : ''} 
+                                   onchange="toggleItemSelection('${productId}')">
                         </div>
                         
                         <div class="item-image">
-                            <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                            <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; color: #666; font-size: 0.8rem;">
+                                📦 ${item.name}
+                            </div>
                         </div>
                         
                         <div class="item-details">
@@ -750,17 +867,33 @@
                 `;
             });
 
-            const total = calculateTotal();
+            const { total, selectedCount } = calculateTotal();
+            const totalItems = Object.keys(cartData).length;
+            
             cartHTML += `
                 <div class="cart-summary">
-                    <div class="total-price">
-                        Total: ${formatRupiah(total)}
+                    <div class="cart-summary-details">
+                        <div class="summary-item">
+                            <span>Item dipilih:</span>
+                            <span>${selectedCount} dari ${totalItems} item</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Subtotal:</span>
+                            <span>${formatRupiah(total)}</span>
+                        </div>
                     </div>
-                    <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
+                    <div class="total-price">
+                        <span>Total:</span>
+                        <span>${formatRupiah(total)}</span>
+                    </div>
+                    <button class="checkout-btn" onclick="goToCheckout()" ${selectedCount === 0 ? 'disabled' : ''}>
+                        Checkout (${selectedCount})
+                    </button>
                 </div>
             `;
 
             cartContent.innerHTML = cartHTML;
+            updateSelectAllCheckbox();
         }
 
         // Add sample products for demo
@@ -770,13 +903,22 @@
                     name: 'Kopi Gayo',
                     price: 32000,
                     image: 'kopi-gayo.jpg',
-                    quantity: 1
+                    quantity: 1,
+                    selected: true
                 },
                 '2': {
-                    name: 'Matcha',
+                    name: 'Matcha Premium',
                     price: 28000,
                     image: 'matcha.jpg',
-                    quantity: 2
+                    quantity: 2,
+                    selected: true
+                },
+                '3': {
+                    name: 'Teh Herbal',
+                    price: 15000,
+                    image: 'teh-herbal.jpg',
+                    quantity: 1,
+                    selected: false
                 }
             };
             renderCart();

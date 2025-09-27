@@ -37,7 +37,12 @@ Route::get('/adminDash', function () {
 Route::get('/product', function () {
     return view('product');
 });
-
+Route::get('/editProduct', function () {
+    return view('editProduct');
+});
+Route::get('/keranjang', function () {
+    return view('keranjang');
+});
 // Remove duplicate routes - these are causing conflicts
 // Route::get('/', function () {
 //     return view('welcome');
