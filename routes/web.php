@@ -14,14 +14,14 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
 
-Route::post('/register', [AuthController::class, 'processRegister']);
-
-// Protected routes (require authentication)
-Route::middleware('web')->group(function () {
-    Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage');
-    Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-    Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
+// Protected routes - these should check authentication in controller
+Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage');
+    Route::get('/searchfilter', [AuthController::class, 'showSearchFilter'])->name('searchfilter');
+    Route::get('/cart', [AuthController::class, 'showCart'])->name('cart');
+Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
+Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/alamat', function () {
@@ -29,8 +29,26 @@ Route::middleware('web')->group(function () {
     });
     Route::get('/alamat', [AlamatController::class, 'showForm'])->name('alamat.form');
     Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat.update');
-    
+
+Route::get('/adminDash', function () {
+    return view('adminDash');
 });
+
+Route::get('/product', function () {
+    return view('product');
+});
+Route::get('/editProduct', function () {
+    return view('editProduct');
+});
+Route::get('/keranjang', function () {
+    return view('keranjang');
+});
+
+Route::get('/payment', function () {
+    // Pastikan 'qris_payment' sesuai dengan nama file Anda
+    return view('payment'); 
+})->name('payment'); // <--- INI BAGIAN YANG PALING PENTING
+
 
 // Remove duplicate routes - these are causing conflicts
 // Route::get('/', function () {
