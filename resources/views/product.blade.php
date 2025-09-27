@@ -68,6 +68,11 @@
         </div>
         
         <div class="mb-6">
+            <label class="block font-semibold text-green-darker mb-2">Berat</label>
+            <p class="text-gray-700 font-medium text-lg">{{ $product->berat }} kg</p>
+        </div>
+
+        <div class="mb-6">
             <label class="block font-semibold text-green-darker mb-2">Kategori</label>
             <p class="text-gray-700 font-medium text-lg">{{ $product->kategori }}</p>
         </div>
