@@ -9,11 +9,12 @@ Route::get('/', function() {
     return redirect()->route('login');
 });
 
-// Authentication routes
+// Authentication routes (public - no middleware needed)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'processLogin']);
+Route::post('/login', [AuthController::class, 'processLogin'])->name('login.process');
 
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+
 Route::post('/register', [AuthController::class, 'processRegister']);
 
 // Protected routes (require authentication)
@@ -28,6 +29,7 @@ Route::middleware('web')->group(function () {
     });
     Route::get('/alamat', [AlamatController::class, 'showForm'])->name('alamat.form');
     Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat.update');
+    
 });
 
 // Remove duplicate routes - these are causing conflicts

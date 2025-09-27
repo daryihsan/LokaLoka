@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Saya</title>
+    <title>Profil Saya - Loka Loka</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -50,18 +50,43 @@
             border-bottom: 1px solid #eee;
         }
 
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
         .profile-pic {
             width: 80px;
             height: 80px;
             border-radius: 50%;
             overflow: hidden;
-            border: 2px solid #5c6641;
+            border: 3px solid #5c6641;
+            background: linear-gradient(135deg, #5c6641 0%, #A6A604 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
         }
 
         .profile-pic img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        .profile-info h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            color: #333;
+            margin: 0;
+        }
+
+        .profile-info p {
+            color: #666;
+            margin: 5px 0 0 0;
         }
 
         .header-actions {
@@ -100,12 +125,32 @@
         }
 
         .btn-logout {
-            background-color: #674f00;
+            background-color: #dc3545;
             color: white;
         }
 
         .btn-logout:hover {
             background-color: #c82333;
+        }
+
+        /* Success/Error Messages */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         /* Main Content Area */
@@ -252,20 +297,26 @@
         }
 
         .status-selesai {
-            background-color: #95b04a; /* Green */
+            background-color: #95b04a;
         }
 
         .status-dikirim {
-            background-color: #DA983C; /* Blue */
+            background-color: #DA983C;
         }
 
         .status-diproses {
-            background-color: #f4ddb8; /* Amber */
+            background-color: #f4ddb8;
             color: #333;
         }
 
         .status-batal {
-            background-color: #66371b; /* Red */
+            background-color: #66371b;
+        }
+
+        .empty-orders {
+            text-align: center;
+            padding: 40px;
+            color: #666;
         }
 
         /* Responsive Design */
@@ -304,19 +355,45 @@
             .card {
                 padding: 25px;
             }
+
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
+        <!-- Success/Error Messages -->
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-error">
+                @foreach ($errors->all() as $error)
+                    {{ $error }}<br>
+                @endforeach
+            </div>
+        @endif
+
         <header>
-            <div class="profile-pic">
-                <img src="https://via.placeholder.com/80" alt="Foto Profil">
+            <div class="profile-header">
+                <div class="profile-pic">
+                    {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
+                </div>
+                <div class="profile-info">
+                    <h1>{{ $user->name ?? 'User' }}</h1>
+                    <p>{{ $user->email ?? '' }}</p>
+                </div>
             </div>
             <div class="header-actions">
-                <a href="login.php" class="btn">Login</a>
-                <a href="#" class="btn btn-logout" onclick="handleLogout()">Logout</a>
+                <a href="{{ route('homepage') }}" class="btn">← Kembali ke Beranda</a>
+                <a href="{{ route('logout') }}" class="btn btn-logout" onclick="return confirm('Apakah Anda yakin ingin logout?')">Logout</a>
                 <a href="#" class="btn btn-secondary">Customer Service</a>
             </div>
         </header>
@@ -325,12 +402,12 @@
             <div class="card">
                 <h2>Identitas Diri</h2>
                 <div class="identity-info">
-                    <p><strong>Username:</strong> loka_user_01</p>
-                    <p><strong>Nama Lengkap:</strong> Budi Santoso</p>
-                    <p><strong>Email:</strong> budi.santoso@example.com</p>
-                    <p><strong>Nomor Telepon:</strong> 081234567890</p>
-                    <p><strong>Jenis Kelamin:</strong> Pria</p>
-                    <p><strong>Tanggal Lahir:</strong> 17 Agustus 1999</p>
+                    <p><strong>Username:</strong> {{ $user->name ?? 'N/A' }}</p>
+                    <p><strong>Email:</strong> {{ $user->email ?? 'N/A' }}</p>
+                    <p><strong>Nomor Telepon:</strong> {{ $user->phone_number ?? 'N/A' }}</p>
+                    <p><strong>Role:</strong> {{ ucfirst($user->role ?? 'Customer') }}</p>
+                    <p><strong>Bergabung sejak:</strong> {{ $user->created_at ? $user->created_at->format('d F Y') : 'N/A' }}</p>
+                    <p><strong>Update terakhir:</strong> {{ $user->updated_at ? $user->updated_at->format('d F Y') : 'N/A' }}</p>
                 </div>
             </div>
 
@@ -350,31 +427,43 @@
                 </div>
 
                 <div class="order-list">
-                    <div class="order-item" data-status="selesai">
-                        <div class="order-details">
-                            <p class="item-name">Buku Tulis Campus (1 Pak)</p>
-                            <p class="order-status">Status: <span class="status status-selesai">Selesai</span></p>
+                    @if(isset($orders) && count($orders) > 0)
+                        @foreach($orders as $order)
+                            <div class="order-item" data-status="{{ $order->status ?? 'diproses' }}">
+                                <div class="order-details">
+                                    <p class="item-name">{{ $order->product_name ?? 'Produk' }}</p>
+                                    <p class="order-status">Status: <span class="status status-{{ $order->status ?? 'diproses' }}">{{ ucfirst($order->status ?? 'Diproses') }}</span></p>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <!-- Sample orders - remove these when you have real orders -->
+                        <div class="order-item" data-status="selesai">
+                            <div class="order-details">
+                                <p class="item-name">Gudeg Jogja Authentic</p>
+                                <p class="order-status">Status: <span class="status status-selesai">Selesai</span></p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="order-item" data-status="dikirim">
-                        <div class="order-details">
-                            <p class="item-name">Keyboard Mekanikal Rexus</p>
-                            <p class="order-status">Status: <span class="status status-dikirim">Dikirim</span></p>
+                        <div class="order-item" data-status="dikirim">
+                            <div class="order-details">
+                                <p class="item-name">Kopi Arabica Temanggung</p>
+                                <p class="order-status">Status: <span class="status status-dikirim">Dikirim</span></p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="order-item" data-status="diproses">
-                        <div class="order-details">
-                            <p class="item-name">T-Shirt Official Universitas</p>
-                            <p class="order-status">Status: <span class="status status-diproses">Diproses</span></p>
+                        <div class="order-item" data-status="diproses">
+                            <div class="order-details">
+                                <p class="item-name">Batik Tulis Solo Premium</p>
+                                <p class="order-status">Status: <span class="status status-diproses">Diproses</span></p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="order-item" data-status="batal">
-                        <div class="order-details">
-                            <p class="item-name">Tas Ransel Eiger</p>
-                            <p class="order-status">Status: <span class="status status-batal">Batal</span></p>
-                        </div>
-                    </div>
+                    @endif
                 </div>
+
+                @if((!isset($orders) || count($orders) == 0))
+                    <div class="empty-orders" style="display: none;" id="no-orders-message">
+                        <p>Tidak ada pesanan yang ditemukan untuk filter ini.</p>
+                    </div>
+                @endif
             </div>
         </section>
     </div>
@@ -427,34 +516,50 @@
 
         function filterOrders(status) {
             const orderItems = document.querySelectorAll('.order-item');
+            const noOrdersMessage = document.getElementById('no-orders-message');
+            let visibleCount = 0;
             
             orderItems.forEach(function(item) {
                 if (status === 'semua') {
                     item.classList.remove('hidden');
+                    visibleCount++;
                 } else {
                     if (item.getAttribute('data-status') === status) {
                         item.classList.remove('hidden');
+                        visibleCount++;
                     } else {
                         item.classList.add('hidden');
                     }
                 }
             });
-        }
 
-        // Logout functionality
-        function handleLogout() {
-            if (confirm('Apakah Anda yakin ingin logout?')) {
-                // Here you would typically redirect to logout script or clear session
-                alert('Logout berhasil!');
-                // Example: window.location.href = 'logout.php';
+            // Show/hide no orders message
+            if (noOrdersMessage) {
+                if (visibleCount === 0) {
+                    noOrdersMessage.style.display = 'block';
+                } else {
+                    noOrdersMessage.style.display = 'none';
+                }
             }
         }
 
         // Initialize filter
         document.addEventListener('DOMContentLoaded', function() {
             filterOrders('semua');
+
+            // Auto-hide success message after 5 seconds
+            setTimeout(function() {
+                const successAlert = document.querySelector('.alert-success');
+                if (successAlert) {
+                    successAlert.style.opacity = '0';
+                    setTimeout(function() {
+                        if (successAlert.parentNode) {
+                            successAlert.parentNode.removeChild(successAlert);
+                        }
+                    }, 500);
+                }
+            }, 5000);
         });
     </script>
-
 </body>
 </html>
