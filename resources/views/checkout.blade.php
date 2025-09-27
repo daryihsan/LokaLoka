@@ -262,6 +262,16 @@
 
         // Panggil fungsi sekali saat halaman dimuat untuk memastikan total awal benar
         document.addEventListener('DOMContentLoaded', recalculateTotals);
+
+        document.querySelector('.checkout-button').addEventListener('click', function(event) {
+            event.preventDefault();
+
+            const totalText = document.getElementById('summary-total').innerText;
+            const totalValue = parseInt(totalText.replace(/[^0-9]/g, ''));
+
+            // Pastikan memanggil route dengan nama yang benar: 'payment'
+            window.location.href = `{{ route('payment') }}?total=${totalValue}`;
+        });
     </script>
 </body>
 </html>
