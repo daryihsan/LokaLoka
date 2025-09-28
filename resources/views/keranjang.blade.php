@@ -137,6 +137,21 @@
             padding: 1.2rem 2rem;
             font-size: 1.1rem;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .select-all-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #B8C951;
         }
         
         .cart-item {
@@ -153,6 +168,10 @@
         .cart-item:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .cart-item.unchecked {
+            opacity: 0.6;
         }
         
         .item-checkbox {
@@ -258,11 +277,27 @@
             text-align: right;
         }
         
+        .cart-summary-details {
+            margin-bottom: 1rem;
+            text-align: right;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
         .total-price {
             font-size: 1.4rem;
             font-weight: bold;
             color: #2c3e50;
             margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            border-top: 2px solid #ddd;
+            padding-top: 1rem;
         }
         
         .checkout-btn {
@@ -281,6 +316,13 @@
         .checkout-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(107, 124, 52, 0.4);
+        }
+        
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .empty-cart {
@@ -340,7 +382,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            animation: fadeIn 0.3s ease-out;
         }
         
         .modal-overlay.show {
@@ -354,21 +395,19 @@
             max-width: 420px;
             width: 90%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-            animation: modalSlideIn 0.3s ease-out;
             overflow: hidden;
         }
         
         .modal-header {
-            background: linear-gradient(135deg, #6B7C34 0%, #8B9D46 100%);
-            padding: 1rem 1.5rem;
+            background: #6B7C34;
+            padding: 0.8rem 0;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         
         .modal-logo {
             background: #B8C951;
-            color: #2c3e50;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -377,31 +416,31 @@
             justify-content: center;
             font-weight: bold;
             font-size: 1.1rem;
+            margin-left: 1rem;
         }
         
         .modal-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
+            font-weight: bold;
             color: white;
             margin: 0;
         }
         
         .modal-body {
-            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
         }
         
         .modal-message {
             font-size: 1.1rem;
             color: #333;
-            margin: 0 0 2rem 0;
-            line-height: 1.4;
-            font-weight: 500;
+            margin-bottom: 1.5rem;
         }
         
         .modal-buttons {
             display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
+            justify-content: center;
+            gap: 1rem;
         }
         
         .modal-btn {
@@ -412,18 +451,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 80px;
-        }
-        
-        .modal-btn-cancel {
-            background: #C8A951;
-            color: white;
-        }
-        
-        .modal-btn-cancel:hover {
-            background: #B8993D;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
         .modal-btn-confirm {
@@ -433,24 +460,15 @@
         
         .modal-btn-confirm:hover {
             background: #5A6B2B;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .modal-btn-cancel {
+            background: #C8A951;
+            color: white;
         }
         
-        @keyframes modalSlideIn {
-            from {
-                transform: scale(0.9) translateY(-30px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
+        .modal-btn-cancel:hover {
+            background: #B8993D;
         }
         
         @keyframes slideIn {
@@ -498,12 +516,18 @@
             .container {
                 padding: 0 1rem;
             }
+            
+            .summary-item {
+                font-size: 0.9rem;
+            }
+            
+            .total-price {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
 <body>
-
-
     <!-- Notification -->
     <div id="notification" class="notification"></div>
 
@@ -515,10 +539,27 @@
                 <h3 class="modal-title">Loka Loka</h3>
             </div>
             <div class="modal-body">
-                <p class="modal-message" id="modalMessage">Hapus produk dari keranjang?</p>
+                <p class="modal-message" id="modalMessage">Hapus Teh Herbal dari keranjang?</p>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
                     <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-logo">L</div>
+                <h3 class="modal-title">Loka Loka</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" id="checkoutMessage"></p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-confirm" id="checkoutConfirm">OK</button>
+                    <button class="modal-btn modal-btn-cancel" id="checkoutCancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -544,13 +585,22 @@
                 name: 'Kopi Gayo',
                 price: 32000,
                 image: 'kopi-gayo.jpg',
-                quantity: 1
+                quantity: 1,
+                selected: true
             },
             '2': {
-                name: 'Matcha',
+                name: 'Matcha Premium',
                 price: 28000,
                 image: 'matcha.jpg',
-                quantity: 2
+                quantity: 2,
+                selected: true
+            },
+            '3': {
+                name: 'Teh Herbal',
+                price: 15000,
+                image: 'teh-herbal.jpg',
+                quantity: 1,
+                selected: false
             }
         };
 
@@ -560,12 +610,12 @@
         }
 
         // Show custom confirmation modal
-        function showConfirmModal(message) {
+        function showConfirmModal(message, modalId = 'confirmModal') {
             return new Promise((resolve) => {
-                const modal = document.getElementById('confirmModal');
-                const messageElement = document.getElementById('modalMessage');
-                const confirmButton = document.getElementById('modalConfirm');
-                const cancelButton = document.getElementById('modalCancel');
+                const modal = document.getElementById(modalId);
+                const messageElement = modalId === 'confirmModal' ? document.getElementById('modalMessage') : document.getElementById('checkoutMessage');
+                const confirmButton = modal.querySelector('.modal-btn-confirm');
+                const cancelButton = modal.querySelector('.modal-btn-cancel');
                 
                 messageElement.textContent = message;
                 modal.classList.add('show');
@@ -612,13 +662,60 @@
             }, 3000);
         }
 
-        // Calculate total price
+        // Calculate total price (only selected items)
         function calculateTotal() {
             let total = 0;
+            let selectedCount = 0;
+            
             Object.values(cartData).forEach(item => {
-                total += item.price * item.quantity;
+                if (item.selected) {
+                    total += item.price * item.quantity;
+                    selectedCount++;
+                }
             });
-            return total;
+            
+            return { total, selectedCount };
+        }
+
+        // Toggle item selection
+        function toggleItemSelection(productId) {
+            if (cartData[productId]) {
+                cartData[productId].selected = !cartData[productId].selected;
+                renderCart();
+                updateSelectAllCheckbox();
+            }
+        }
+
+        // Toggle select all
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const shouldSelectAll = selectAllCheckbox.checked;
+            
+            Object.keys(cartData).forEach(productId => {
+                cartData[productId].selected = shouldSelectAll;
+            });
+            
+            renderCart();
+        }
+
+        // Update select all checkbox state
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            if (!selectAllCheckbox) return;
+            
+            const totalItems = Object.keys(cartData).length;
+            const selectedItems = Object.values(cartData).filter(item => item.selected).length;
+            
+            if (selectedItems === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedItems === totalItems) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
         }
 
         // Update quantity
@@ -634,6 +731,7 @@
                     if (confirmed) {
                         delete cartData[productId];
                         renderCart();
+                        updateSelectAllCheckbox();
                         showNotification('Produk dihapus dari keranjang');
                     } else {
                         renderCart();
@@ -655,6 +753,7 @@
                     if (confirmed) {
                         delete cartData[productId];
                         renderCart();
+                        updateSelectAllCheckbox();
                         showNotification('Produk dihapus dari keranjang');
                     } else {
                         renderCart();
@@ -669,33 +768,39 @@
             if (confirmed) {
                 delete cartData[productId];
                 renderCart();
+                updateSelectAllCheckbox();
                 showNotification('Produk dihapus dari keranjang');
             }
         }
 
-        // Add to cart
-        function addToCart(productId, productName, productPrice, productImage = 'default.jpg') {
-            if (cartData[productId]) {
-                cartData[productId].quantity++;
-            } else {
-                cartData[productId] = {
-                    name: productName,
-                    price: productPrice,
-                    image: productImage,
-                    quantity: 1
-                };
-            }
-            renderCart();
-            showNotification(`${productName} ditambahkan ke keranjang`);
-        }
-
         // Go to checkout
-        function goToCheckout() {
+        async function goToCheckout() {
+            const { selectedCount, total } = calculateTotal();
+            
             if (Object.keys(cartData).length === 0) {
                 alert('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.');
                 return;
             }
-            alert('Menuju halaman checkout...');
+            
+            if (selectedCount === 0) {
+                alert('Pilih minimal satu produk untuk checkout!');
+                return;
+            }
+            
+            const confirmed = await showConfirmModal(`Checkout ${selectedCount} produk, total: ${formatRupiah(total)}`, 'checkoutModal');
+            if (confirmed) {
+                // Get selected items for checkout
+                const selectedItems = Object.keys(cartData)
+                    .filter(key => cartData[key].selected)
+                    .map(key => ({
+                        id: key,
+                        ...cartData[key]
+                    }));
+                
+                console.log('Items to checkout:', selectedItems);
+                showNotification('Checkout berhasil!');
+                // Here you can add further checkout logic
+            }
         }
 
         // Render cart items
@@ -716,7 +821,10 @@
 
             let cartHTML = `
                 <div class="cart-header">
-                    Kopi Tuku
+                    <div class="select-all-container">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        <label for="selectAllCheckbox">Kopi Tuku</label>
+                    </div>
                 </div>
             `;
 
@@ -724,13 +832,18 @@
                 const item = cartData[productId];
                 
                 cartHTML += `
-                    <div class="cart-item">
+                    <div class="cart-item ${!item.selected ? 'unchecked' : ''}">
                         <div class="item-checkbox">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" ${item.selected ? 'checked' : ''} 
+                                   onchange="toggleItemSelection('${productId}')">
                         </div>
                         
                         <div class="item-image">
-                            <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">
+                            <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div style="display: none; width: 100%; height: 100%; align-items: center; justify-content: center; color: #666; font-size: 0.8rem;">
+                                📦 ${item.name}
+                            </div>
                         </div>
                         
                         <div class="item-details">
@@ -750,17 +863,33 @@
                 `;
             });
 
-            const total = calculateTotal();
+            const { total, selectedCount } = calculateTotal();
+            const totalItems = Object.keys(cartData).length;
+            
             cartHTML += `
                 <div class="cart-summary">
-                    <div class="total-price">
-                        Total: ${formatRupiah(total)}
+                    <div class="cart-summary-details">
+                        <div class="summary-item">
+                            <span>Item dipilih:</span>
+                            <span>${selectedCount} dari ${totalItems} item</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Subtotal:</span>
+                            <span>${formatRupiah(total)}</span>
+                        </div>
                     </div>
-                    <button class="checkout-btn" onclick="goToCheckout()">Checkout</button>
+                    <div class="total-price">
+                        <span>Total:</span>
+                        <span>${formatRupiah(total)}</span>
+                    </div>
+                    <button class="checkout-btn" onclick="goToCheckout()" ${selectedCount === 0 ? 'disabled' : ''}>
+                        Checkout (${selectedCount})
+                    </button>
                 </div>
             `;
 
             cartContent.innerHTML = cartHTML;
+            updateSelectAllCheckbox();
         }
 
         // Add sample products for demo
@@ -770,13 +899,22 @@
                     name: 'Kopi Gayo',
                     price: 32000,
                     image: 'kopi-gayo.jpg',
-                    quantity: 1
+                    quantity: 1,
+                    selected: true
                 },
                 '2': {
-                    name: 'Matcha',
+                    name: 'Matcha Premium',
                     price: 28000,
                     image: 'matcha.jpg',
-                    quantity: 2
+                    quantity: 2,
+                    selected: true
+                },
+                '3': {
+                    name: 'Teh Herbal',
+                    price: 15000,
+                    image: 'teh-herbal.jpg',
+                    quantity: 1,
+                    selected: false
                 }
             };
             renderCart();
