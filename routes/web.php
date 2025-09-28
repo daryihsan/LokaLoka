@@ -23,7 +23,7 @@ Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/alamat', function () {
         return view('alamat');
     });
@@ -37,6 +37,18 @@ Route::get('/adminDash', function () {
 Route::get('/product', function () {
     return view('product');
 });
+Route::get('/editProduct', function () {
+    return view('editProduct');
+});
+Route::get('/keranjang', function () {
+    return view('keranjang');
+});
+
+Route::get('/payment', function () {
+    // Pastikan 'qris_payment' sesuai dengan nama file Anda
+    return view('payment'); 
+})->name('payment'); // <--- INI BAGIAN YANG PALING PENTING
+
 
 // Remove duplicate routes - these are causing conflicts
 // Route::get('/', function () {
