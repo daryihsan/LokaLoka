@@ -382,7 +382,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            animation: fadeIn 0.3s ease-out;
         }
         
         .modal-overlay.show {
@@ -396,21 +395,19 @@
             max-width: 420px;
             width: 90%;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-            animation: modalSlideIn 0.3s ease-out;
             overflow: hidden;
         }
         
         .modal-header {
-            background: linear-gradient(135deg, #6B7C34 0%, #8B9D46 100%);
-            padding: 1rem 1.5rem;
+            background: #6B7C34;
+            padding: 0.8rem 0;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
         }
         
         .modal-logo {
             background: #B8C951;
-            color: #2c3e50;
             width: 32px;
             height: 32px;
             border-radius: 50%;
@@ -419,31 +416,31 @@
             justify-content: center;
             font-weight: bold;
             font-size: 1.1rem;
+            margin-left: 1rem;
         }
         
         .modal-title {
-            font-size: 1.2rem;
-            font-weight: 600;
+            font-size: 1.3rem;
+            font-weight: bold;
             color: white;
             margin: 0;
         }
         
         .modal-body {
-            padding: 2rem 1.5rem 1.5rem 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
         }
         
         .modal-message {
             font-size: 1.1rem;
             color: #333;
-            margin: 0 0 2rem 0;
-            line-height: 1.4;
-            font-weight: 500;
+            margin-bottom: 1.5rem;
         }
         
         .modal-buttons {
             display: flex;
-            gap: 0.75rem;
-            justify-content: flex-end;
+            justify-content: center;
+            gap: 1rem;
         }
         
         .modal-btn {
@@ -454,18 +451,6 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            min-width: 80px;
-        }
-        
-        .modal-btn-cancel {
-            background: #C8A951;
-            color: white;
-        }
-        
-        .modal-btn-cancel:hover {
-            background: #B8993D;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
         .modal-btn-confirm {
@@ -475,24 +460,15 @@
         
         .modal-btn-confirm:hover {
             background: #5A6B2B;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
         
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .modal-btn-cancel {
+            background: #C8A951;
+            color: white;
         }
         
-        @keyframes modalSlideIn {
-            from {
-                transform: scale(0.9) translateY(-30px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
+        .modal-btn-cancel:hover {
+            background: #B8993D;
         }
         
         @keyframes slideIn {
@@ -563,10 +539,27 @@
                 <h3 class="modal-title">Loka Loka</h3>
             </div>
             <div class="modal-body">
-                <p class="modal-message" id="modalMessage">Hapus produk dari keranjang?</p>
+                <p class="modal-message" id="modalMessage">Hapus Teh Herbal dari keranjang?</p>
                 <div class="modal-buttons">
                     <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
                     <button class="modal-btn modal-btn-cancel" id="modalCancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-logo">L</div>
+                <h3 class="modal-title">Loka Loka</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" id="checkoutMessage"></p>
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-confirm" id="checkoutConfirm">OK</button>
+                    <button class="modal-btn modal-btn-cancel" id="checkoutCancel">Cancel</button>
                 </div>
             </div>
         </div>
@@ -617,12 +610,12 @@
         }
 
         // Show custom confirmation modal
-        function showConfirmModal(message) {
+        function showConfirmModal(message, modalId = 'confirmModal') {
             return new Promise((resolve) => {
-                const modal = document.getElementById('confirmModal');
-                const messageElement = document.getElementById('modalMessage');
-                const confirmButton = document.getElementById('modalConfirm');
-                const cancelButton = document.getElementById('modalCancel');
+                const modal = document.getElementById(modalId);
+                const messageElement = modalId === 'confirmModal' ? document.getElementById('modalMessage') : document.getElementById('checkoutMessage');
+                const confirmButton = modal.querySelector('.modal-btn-confirm');
+                const cancelButton = modal.querySelector('.modal-btn-cancel');
                 
                 messageElement.textContent = message;
                 modal.classList.add('show');
@@ -781,8 +774,8 @@
         }
 
         // Go to checkout
-        function goToCheckout() {
-            const { selectedCount } = calculateTotal();
+        async function goToCheckout() {
+            const { selectedCount, total } = calculateTotal();
             
             if (Object.keys(cartData).length === 0) {
                 // Menggunakan modal kustom untuk notifikasi
@@ -796,24 +789,26 @@
                 return;
             }
             
-            // 1. Ambil semua item yang dipilih oleh pengguna
-            const selectedItems = Object.keys(cartData)
-                .filter(key => cartData[key].selected)
-                .map(key => ({
-                    id: key,
-                    name: cartData[key].name,
-                    price: cartData[key].price,
-                    quantity: cartData[key].quantity,
-                    image: cartData[key].image
-                }));
+            if (selectedCount === 0) {
+                alert('Pilih minimal satu produk untuk checkout!');
+                return;
+            }
             
-            // 2. Simpan data item yang dipilih ke sessionStorage browser
-            // JSON.stringify mengubah objek JavaScript menjadi teks JSON agar bisa disimpan
-            sessionStorage.setItem('checkoutItems', JSON.stringify(selectedItems));
-            
-            // 3. Arahkan (redirect) pengguna ke halaman checkout
-            // Kita menggunakan Blade helper {{ route('checkout') }} untuk mendapatkan URL yang benar
-            window.location.href = `{{ route('checkout') }}`;
+            const confirmed = await showConfirmModal(`Checkout ${selectedCount} produk, total: ${formatRupiah(total)}`, 'checkoutModal');
+            if (confirmed) {
+                // Get selected items for checkout
+                const selectedItems = Object.keys(cartData)
+                    .filter(key => cartData[key].selected)
+                    .map(key => ({
+                        id: key,
+                        ...cartData[key]
+                    }));
+                
+                console.log('Items to checkout:', selectedItems);
+                showNotification('Checkout berhasil!');
+                // Here you can add further checkout logic
+            }
+
         }
 
         // Render cart items
@@ -836,9 +831,9 @@
                 <div class="cart-header">
                     <div class="select-all-container">
                         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
-                        <label for="selectAllCheckbox">Pilih Semua</label>
+                        <label for="selectAllCheckbox">Kopi Tuku</label>
                     </div>
-                    Kopi Tuku
+
                 </div>
             `;
 
