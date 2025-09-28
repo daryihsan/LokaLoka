@@ -778,7 +778,14 @@
             const { selectedCount, total } = calculateTotal();
             
             if (Object.keys(cartData).length === 0) {
-                alert('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.');
+                // Menggunakan modal kustom untuk notifikasi
+                showConfirmModal('Keranjang kosong! Silakan tambahkan produk terlebih dahulu.', true);
+                return;
+            }
+            
+            if (selectedCount === 0) {
+                // Menggunakan modal kustom untuk notifikasi
+                showConfirmModal('Pilih minimal satu produk untuk checkout!', true);
                 return;
             }
             
@@ -801,6 +808,7 @@
                 showNotification('Checkout berhasil!');
                 // Here you can add further checkout logic
             }
+
         }
 
         // Render cart items
@@ -825,6 +833,7 @@
                         <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
                         <label for="selectAllCheckbox">Kopi Tuku</label>
                     </div>
+
                 </div>
             `;
 
