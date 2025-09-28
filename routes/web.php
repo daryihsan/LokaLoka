@@ -23,7 +23,7 @@ Route::get('/homepage', [AuthController::class, 'showHomepage'])->name('homepage
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
     Route::get('/checkout', [AuthController::class, 'showCheckout'])->name('checkout');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/alamat', function () {
         return view('alamat');
     });
