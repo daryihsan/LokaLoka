@@ -2,71 +2,210 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Users;
+use Illuminate\Http\Request;
 use App\Models\Products;
 use App\Models\Categories;
+use App\Models\Users;
 use App\Models\Orders;
-use Illuminate\Http\Request;
+use App\Models\OrderItems;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
-    public function dashboard()
+    /**
+     * Menampilkan dashboard admin dan mengambil semua data dari database.
+     */
+    public function dashboard(Request $request)
     {
+        $section = $request->query('section', 'overview');
+
+        // *************** 1. STATISTIK UTAMA ***************
         $stats = [
-            'total_orders' => Orders::count(),
-            'total_revenue' => Orders::where('status', 'selesai')->sum('total'),
             'total_products' => Products::count(),
-            'total_customers' => Users::where('role', 'customer')->count()
+            'total_orders' => Orders::count(),
+            'total_customers' => Users::where('role', 'customer')->count(),
+            'unapproved_users' => Users::where('approved', '0')->count(), 
+            'total_revenue' => Orders::where('status', 'selesai')->sum('total'), 
+            'pending_orders' => Orders::where('status', 'diproses')->count(),
         ];
+        
+        // *************** 2. DATA TABEL & VIEW ***************
+        
+        $products = Products::with('category')->paginate(10)->appends($request->all());
+        $categories = Categories::withCount('products')->paginate(10)->appends($request->all());
+        $orders = Orders::with('user')->latest()->paginate(10)->appends($request->all());
+        
+        // Mengambil semua user (termasuk admin)
+        $users = Users::paginate(10)->appends($request->all()); 
+        $recentOrders = Orders::with('user')->latest()->take(5)->get(); 
 
-        $recentOrders = Orders::with(['user', 'orderItems.product'])
-            ->orderBy('created_at', 'desc')
-            ->limit(5)
-            ->get();
-
-        $salesByCategory = DB::table('order_items')
+        // *************** 3. DATA CHART ***************
+        $salesByCategory = Orders::join('order_items', 'orders.id', '=', 'order_items.order_id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->select('categories.name', DB::raw('SUM(order_items.subtotal) as total'))
-            ->groupBy('categories.name')
+            ->select('categories.name', DB::raw('SUM(order_items.qty * order_items.price) as total_sales'))
+            ->groupBy('categories.id', 'categories.name')
             ->get();
+        
+        // ** BARU: Data Registrasi Pengguna Baru per Bulan **
+        $newUsersMonthly = Users::select(
+            DB::raw('COUNT(id) as total_users'),
+            DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month_year') // Mengelompokkan per bulan
+        )
+        ->where('role', 'customer') // Hanya hitung customer
+        ->groupBy('month_year')
+        ->orderBy('month_year', 'asc')
+        ->get();
 
-        return view('adminDash', compact('stats', 'recentOrders', 'salesByCategory'));
+        // *************** 4. KIRIM DATA KE VIEW ***************
+        return view('admin.dashboard', compact(
+            'section',
+            'stats',
+            'products',
+            'categories',
+            'users',
+            'orders',
+            'recentOrders',
+            'salesByCategory',
+            'newUsersMonthly',
+        ));
     }
 
-    public function products()
-    {
-        $products = Products::with('category')->paginate(10);
-        $categories = Categories::all();
-        return view('admin.products', compact('products', 'categories'));
-    }
+
+    // =========================================================
+    // CRUD PRODUCTS (Tidak berubah)
+    // =========================================================
 
     public function storeProduct(Request $request)
     {
+        // ... (kode storeProduct tetap sama)
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'description' => 'required|string',
-            'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer|min:0',
-            'image' => 'required|image|max:2048'
+            'category_id' => 'required|exists:categories,id',
+            'weight' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string',
+            'image_url' => 'nullable|url|max:2048', 
+        ]);
+        Products::create($validated);
+        return Redirect::route('admin.dashboard', ['section' => 'products'])->with('success', 'Produk berhasil ditambahkan!');
+    }
+
+    public function updateProduct(Request $request, $id)
+    {
+        // ... (kode updateProduct tetap sama)
+        $product = Products::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'weight' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string',
+            'image_url' => 'nullable|url|max:2048', 
+            'is_active' => 'nullable|boolean',
+        ]);
+        $data = $validated;
+        $data['is_active'] = $request->input('is_active', 0); 
+        $product->update($data);
+        return Redirect::route('admin.dashboard', ['section' => 'products'])->with('success', 'Produk berhasil diperbarui!');
+    }
+
+    public function deleteProduct($id)
+    {
+        // ... (kode deleteProduct tetap sama)
+        $product = Products::findOrFail($id);
+        $product->delete();
+        return Redirect::route('admin.dashboard', ['section' => 'products'])->with('success', 'Produk berhasil dihapus.');
+    }
+
+
+    // =========================================================
+    // CRUD CATEGORIES (Tidak berubah)
+    // =========================================================
+
+    public function storeCategory(Request $request)
+    {
+        // ... (kode storeCategory tetap sama)
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name', 
+        ]);
+        Categories::create($validated);
+        return Redirect::route('admin.dashboard', ['section' => 'categories'])->with('success', 'Kategori berhasil ditambahkan.');
+    }
+
+    public function updateCategory(Request $request, $id)
+    {
+        // ... (kode updateCategory tetap sama)
+        $category = Categories::findOrFail($id);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category->id)], 
+        ]);
+        $category->update($validated);
+        return Redirect::route('admin.dashboard', ['section' => 'categories'])->with('success', 'Kategori berhasil diperbarui.');
+    }
+
+    public function deleteCategory($id)
+    {
+        // ... (kode deleteCategory tetap sama)
+        $category = Categories::findOrFail($id);
+        $category->delete(); 
+        return Redirect::route('admin.dashboard', ['section' => 'categories'])->with('success', 'Kategori berhasil dihapus.');
+    }
+
+
+    // =========================================================
+    // CRUD USERS (Fungsi Update diperkuat)
+    // =========================================================
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = Users::findOrFail($id);
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            // Pastikan role dikirimkan dari form (admin/customer)
+            'role' => ['required', 'string', Rule::in(['admin', 'customer'])], 
+            'status' => ['nullable', 'string', Rule::in(['pending', 'approved'])], // Tambahkan status
         ]);
 
-        $imagePath = $request->file('image')->store('products', 'public');
-        $validated['image_url'] = $imagePath;
+        $user->update($validated);
 
-        Products::create($validated);
-        return redirect()->route('admin.products')->with('success', 'Product added successfully');
+        return Redirect::route('admin.dashboard', ['section' => 'users'])->with('success', "Data pengguna {$user->name} berhasil diperbarui.");
     }
+
+    public function deleteUser($id)
+    {
+        // ... (kode deleteUser tetap sama)
+        $user = Users::findOrFail($id);
+        $user->delete();
+        return Redirect::route('admin.dashboard', ['section' => 'users'])->with('success', 'Pengguna berhasil dihapus.');
+    }
+
+    public function approveUser($id)
+    {
+        // ... (kode approveUser tetap sama)
+        $user = Users::findOrFail($id);
+        $user->update(['status' => 'approved', 'role' => 'customer']); 
+        return Redirect::route('admin.dashboard', ['section' => 'users'])->with('success', 'Pengguna berhasil disetujui (Approved) sebagai Customer.');
+    }
+
+    // =========================================================
+    // ORDER MANAGEMENT (Tidak berubah)
+    // =========================================================
 
     public function updateOrderStatus(Request $request, $id)
     {
+        // ... (kode updateOrderStatus tetap sama)
         $order = Orders::findOrFail($id);
-        $order->status = $request->status;
-        $order->save();
-
-        return back()->with('success', 'Order status updated');
+        $validated = $request->validate([
+            'status' => ['required', 'string', Rule::in(['diproses', 'dikirim', 'selesai', 'dibatalkan'])], 
+        ]);
+        $order->update($validated);
+        return Redirect::route('admin.dashboard', ['section' => 'orders'])->with('success', "Status pesanan #{$id} berhasil diubah menjadi {$validated['status']}.");
     }
 }

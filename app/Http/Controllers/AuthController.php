@@ -46,17 +46,19 @@ class AuthController extends Controller
                        ->first();
 
         if ($user && Hash::check($request->password, $user->password_hash)) {
-            // Login successful - start session
             Session::put('logged_in', true);
             Session::put('user_id', $user->id);
             Session::put('username', $user->name);
             Session::put('user_email', $user->email);
             Session::put('user_role', $user->role);
-            
-            // Regenerate session ID for security
+
             $request->session()->regenerate();
-            
-            return redirect()->route('homepage')->with('success', 'Login berhasil! Selamat datang ' . $user->name);
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard')->with('success', 'Login berhasil! Selamat datang admin');
+            } else {
+                return redirect()->route('homepage')->with('success', 'Login berhasil! Selamat datang ' . $user->name);
+            }
         } else {
             return back()->withErrors(['login' => 'Username/email atau password salah.'])->withInput($request->except('password'));
         }
@@ -109,6 +111,8 @@ class AuthController extends Controller
                 'phone_number' => $request->phone_number,
                 'password_hash' => Hash::make($request->password),
                 'role' => 'customer', // Default role
+                'created_at' => now(),
+                'updated_at'=> now(),
             ]);
 
             if ($user) {
@@ -180,6 +184,32 @@ class AuthController extends Controller
         }
         
         return view('profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        if (!Session::has('logged_in')) {
+            return redirect()->route('login');
+        }
+
+        $user = Users::find(Session::get('user_id'));
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        if (!empty($validated['password'])) {
+            $user->password_hash = Hash::make($validated['password']);
+        }
+        $user->save();
+
+        Session::put('username', $user->name);
+        Session::put('user_email', $user->email);
+
+        return back()->with('success', 'Profil berhasil diperbarui');
     }
 
     /**

@@ -14,6 +14,7 @@ class Carts extends Model
      *
      * @var list<string>
      */
+    protected $table = "carts";
     protected $fillable = [
         'user_id',
     ];

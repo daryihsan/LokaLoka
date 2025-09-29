@@ -182,38 +182,6 @@ class CartController extends Controller
     /**
      * Get cart items for checkout
      */
-    public function getCartItems()
-    {
-        if (!$this->checkAuth()) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        $cart = $this->getUserCart();
-        $cartItems = CartItem::where('cart_id', $cart->id)
-                            ->with('product')
-                            ->get();
-
-        $items = $cartItems->map(function($item) {
-            return [
-                'id' => $item->id,
-                'product_id' => $item->product_id,
-                'name' => $item->product->name,
-                'price' => $item->product->price,
-                'quantity' => $item->qty,
-                'subtotal' => $item->product->price * $item->qty,
-                'image_url' => $item->product->image_url,
-                'stock' => $item->product->stock
-            ];
-        });
-
-        $total = $items->sum('subtotal');
-
-        return response()->json([
-            'items' => $items,
-            'total' => $total,
-            'count' => $items->sum('quantity')
-        ]);
-    }
 
     /**
      * API endpoint to get cart items with full details

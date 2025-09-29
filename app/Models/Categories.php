@@ -14,6 +14,7 @@ class Categories extends Model
      *
      * @var list<string>
      */
+    protected $table = "categories";
     protected $fillable = [
         'name',
     ];
@@ -23,6 +24,6 @@ class Categories extends Model
      */
     public function products()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Products::class, 'category_id');
     }
 }
