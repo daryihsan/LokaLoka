@@ -7,6 +7,7 @@ use App\Models\Products;
 use App\Models\Categories;
 use App\Models\Users;
 use App\Models\Orders;
+use Illuminate\Support\Facades\Session;
 use App\Models\OrderItems;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
@@ -188,10 +189,27 @@ class AdminController extends Controller
 
     public function approveUser($id)
     {
-        // ... (kode approveUser tetap sama)
+        // Pengecekan otorisasi admin (asumsi session check di awal file ini)
+        if (Session::get('user_role') !== 'admin') {
+            return redirect()->route('homepage')->withErrors(['auth' => 'Unauthorized access.']);
+        }
+        
         $user = Users::findOrFail($id);
-        $user->update(['status' => 'approved', 'role' => 'customer']); 
-        return Redirect::route('admin.dashboard', ['section' => 'users'])->with('success', 'Pengguna berhasil disetujui (Approved) sebagai Customer.');
+        
+        // PERBAIKAN: Menggunakan update dan mengembalikan hasil boolean dari update
+        $updated = $user->update([
+            'status' => 'approved', 
+            'approved' => 1, // SET approved = 1 (TRUE)
+            'role' => 'customer'
+        ]); 
+
+        if ($updated) {
+            return Redirect::route('admin.dashboard', ['section' => 'users'])
+                           ->with('success', "Pengguna berhasil disetujui (Approved) sebagai Customer. Kolom approved = 1.");
+        } else {
+            return Redirect::route('admin.dashboard', ['section' => 'users'])
+                           ->with('error', "Gagal memperbarui database. Pastikan kolom 'status' dan 'approved' ada di \$fillable Model Users.");
+        }
     }
 
     // =========================================================

@@ -402,13 +402,23 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $user->name }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->email }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium capitalize">{{ $user->role }}</td>
+                                
+                                {{-- START PERBAIKAN STATUS AKUN --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="status-badge status-{{ str_replace(' ', '-', strtolower($user->status ?? 'approved')) }}">
-                                        {{ $user->status ?? 'Approved' }}
-                                    </span>
+                                    @if($user->approved == 1)
+                                        <span class="status-badge status-approved">
+                                            Approved
+                                        </span>
+                                    @else
+                                        <span class="status-badge status-pending">
+                                            Pending
+                                        </span>
+                                    @endif
                                 </td>
+                                {{-- END PERBAIKAN STATUS AKUN --}}
+                                
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if(isset($user->status) && $user->status === 'pending')
+                                    @if($user->approved == 0)
                                         <button onclick="approveAction('{{ $user->id }}')" class="text-green-600 hover:text-green-900 transition mr-2">Setujui</button>
                                     @else
                                         <button onclick="editUser({{ json_encode($user) }})" class="text-blue-600 hover:text-blue-900 transition mr-2">Edit</button>
