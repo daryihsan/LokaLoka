@@ -14,6 +14,7 @@ class Orders extends Model
      *
      * @var list<string>
      */
+    protected $table = "orders";
     protected $fillable = [
         'user_id',
         'shipping_cost',
@@ -29,7 +30,7 @@ class Orders extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Users::class);
     }
 
     /**
