@@ -28,6 +28,7 @@ class Users extends Authenticatable
         'phone_number',
         'password_hash',
         'role',
+        'approved',
     ];
 
     /**

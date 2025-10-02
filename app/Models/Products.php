@@ -14,6 +14,7 @@ class Products extends Model
      *
      * @var list<string>
      */
+    protected $table = "products";
     protected $fillable = [
         'name',
         'price',
@@ -30,7 +31,7 @@ class Products extends Model
      */
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Categories::class, 'category_id');
     }
 
     /**
@@ -38,7 +39,7 @@ class Products extends Model
      */
     public function cartItems()
     {
-        return $this->hasMany(CartItem::class);
+        return $this->hasMany(CartItems::class);
     }
 
     /**

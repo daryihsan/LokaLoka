@@ -7,25 +7,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
-    /**
-     * Show login form
-     */
+    // Show login form
     public function showLogin()
     {
-        // Redirect to homepage if already logged in
         if (Session::has('logged_in') && Session::get('logged_in') === true) {
+            if (Session::get('user_role') === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
             return redirect()->route('homepage');
         }
-        
         return view('login');
     }
 
-    /**
-     * Process login
-     */
+    // Process login
     public function processLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -40,46 +38,48 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        // Find user by email or name
         $user = Users::where('email', $request->email)
-                    ->orWhere('name', $request->email)
-                    ->first();
+                     ->orWhere('name', $request->email)
+                     ->first();
 
         if ($user && Hash::check($request->password, $user->password_hash)) {
-            // Login successful - start session
+            
+            // PERBAIKAN: Cek kolom 'approved' (TINYINT)
+            if ($user->approved == 0) { 
+                return back()->withErrors(['login' => 'Akun Anda belum disetujui oleh admin.'])->withInput($request->except('password'));
+            }
+
+            // --- Jika Approved, LANJUT ---
             Session::put('logged_in', true);
             Session::put('user_id', $user->id);
             Session::put('username', $user->name);
             Session::put('user_email', $user->email);
             Session::put('user_role', $user->role);
             
-            // Regenerate session ID for security
             $request->session()->regenerate();
-            
+
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard')->with('success', 'Login berhasil! Selamat datang Admin.');
+            }
             return redirect()->route('homepage')->with('success', 'Login berhasil! Selamat datang ' . $user->name);
         } else {
             return back()->withErrors(['login' => 'Username/email atau password salah.'])->withInput($request->except('password'));
         }
     }
 
-    /**
-     * Show registration form
-     */
+    // Show registration form
     public function showRegister()
     {
-        // Redirect to homepage if already logged in
         if (Session::has('logged_in') && Session::get('logged_in') === true) {
             return redirect()->route('homepage');
         }
-        
         return view('register');
     }
 
-    /**
-     * Process registration
-     */
+    // Process registration
     public function processRegister(Request $request)
     {
+        // ... (Validasi tetap sama)
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:users,name',
             'email' => 'required|email|max:255|unique:users,email',
@@ -102,106 +102,110 @@ class AuthController extends Controller
         }
 
         try {
-            // Create new user
+            // PERBAIKAN: Set 'approved' = 0 (false) dan 'status' = 'pending' saat registrasi
             $user = Users::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone_number' => $request->phone_number,
                 'password_hash' => Hash::make($request->password),
-                'role' => 'customer', // Default role
+                'role' => 'customer',
+                'status' => 'pending', 
+                'approved' => 0, // DEFAULT: Belum disetujui
             ]);
 
             if ($user) {
-                return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login dengan akun Anda.');
+                return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda akan aktif setelah disetujui admin.');
             } else {
                 return back()->withErrors(['register' => 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.'])->withInput($request->except('password', 'password_confirmation'));
             }
         } catch (\Exception $e) {
-            // Log the error for debugging
-            \Log::error('Registration error: ' . $e->getMessage());
+            Log::error('Registration error: ' . $e->getMessage());
             return back()->withErrors(['register' => 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.'])->withInput($request->except('password', 'password_confirmation'));
         }
     }
 
-    /**
-     * Show homepage (dashboard)
-     */
-    public function showHomepage()
+    // Logout user
+    public function logout(Request $request)
     {
-        // Check if user is logged in
+        Session::flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login')->with('success', 'Anda telah logout.');
+    }
+
+    // Show user profile
+    public function showProfile()
+    {
+        // === CHECK AUTH LANGSUNG ===
         if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
             return redirect()->route('login')->withErrors(['access' => 'Silakan login terlebih dahulu.']);
         }
+        // ===========================
 
-        // Get user data from database
         $userId = Session::get('user_id');
         $user = Users::find($userId);
-        
+
         if (!$user) {
-            // If user not found, logout and redirect to login
             Session::flush();
             return redirect()->route('login')->withErrors(['error' => 'User tidak ditemukan. Silakan login kembali.']);
         }
 
-        return view('homepage', compact('user'));
+        // Ambil data pesanan user (asumsi relasi sudah benar)
+        $orders = $user->orders()->latest()->get(); 
+        
+        return view('profile', compact('user', 'orders'));
     }
-
-    /**
-     * Logout user
-     */
-    public function logout(Request $request)
+    
+    // Process profile update (placeholder)
+    public function updateProfile(Request $request)
     {
-        // Clear all session data
-        Session::flush();
-        
-        // Invalidate the session
-        $request->session()->invalidate();
-        
-        // Regenerate CSRF token
-        $request->session()->regenerateToken();
-        
-        return redirect()->route('login')->with('success', 'Anda telah logout.');
-    }
-
-    /**
-     * Show user profile
-     */
-    public function showProfile()
-    {
+        // === CHECK AUTH LANGSUNG ===
         if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
-            return redirect()->route('login');
+            return redirect()->route('login')->withErrors(['access' => 'Unauthorized access.']);
         }
-
-        $user = Users::find(Session::get('user_id'));
-        
-        if (!$user) {
-            Session::flush();
-            return redirect()->route('login')->withErrors(['error' => 'User tidak ditemukan.']);
-        }
-        
-        return view('profile', compact('user'));
-    }
-
-    /**
-     * Show user orders
-     */
-    public function showOrders()
-    {
-        if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
-            return redirect()->route('login');
-        }
+        // ===========================
 
         $userId = Session::get('user_id');
         $user = Users::find($userId);
-        
+
         if (!$user) {
-            Session::flush();
-            return redirect()->route('login')->withErrors(['error' => 'User tidak ditemukan.']);
+            return back()->withErrors(['error' => 'User not found.']);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:users,name,' . $user->id,
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone_number' => 'required|string|max:20',
+            'password' => 'nullable|string|min:6|confirmed',
+        ]);
+        
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        $data = $request->only('name', 'email', 'phone_number');
+        if ($request->filled('password')) {
+            $data['password_hash'] = Hash::make($request->password);
         }
         
-        // You can add orders logic here when you have Order model
-        // $orders = Orders::where('user_id', $userId)->get();
+        $user->update($data);
         
-        return view('orders', ['orders' => [], 'user' => $user]);
+        Session::put('username', $user->name);
+        Session::put('user_email', $user->email);
+
+        return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui!');
+    }
+
+
+    // Show user orders page (sudah disatukan di showProfile, ini hanya fallback jika ada rute terpisah)
+    public function showOrders()
+    {
+        // === CHECK AUTH LANGSUNG ===
+        if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
+            return redirect()->route('login')->withErrors(['access' => 'Silakan login terlebih dahulu.']);
+        }
+        // ===========================
+
+        return redirect()->route('profile');
     }
 }
