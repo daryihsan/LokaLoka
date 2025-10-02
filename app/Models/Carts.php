@@ -14,6 +14,7 @@ class Carts extends Model
      *
      * @var list<string>
      */
+    protected $table = "carts";
     protected $fillable = [
         'user_id',
     ];
@@ -31,6 +32,6 @@ class Carts extends Model
      */
     public function cartItems()
     {
-        return $this->hasMany(CartItem::class);
+        return $this->hasMany(CartItems::class, 'cart_id');
     }
 }

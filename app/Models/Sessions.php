@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Session extends Model
+class Sessions extends Model
 {
     use HasFactory;
 
@@ -13,7 +13,8 @@ class Session extends Model
      * The attributes that are mass assignable.
      *
      * @var list<string>
-     */
+     */ 
+    protected $table = "sessions";
     protected $fillable = [
         'user_id',
         'ip_address',
@@ -48,6 +49,6 @@ class Session extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Users::class);
     }
 }
