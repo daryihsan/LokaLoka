@@ -18,8 +18,6 @@
             <p><strong>Username:</strong> {{ $user->name ?? 'N/A' }}</p>
             <p><strong>Email:</strong> {{ $user->email ?? 'N/A' }}</p>
             <p><strong>Nomor Telepon:</strong> {{ $user->phone_number ?? 'N/A' }}</p>
-            {{-- Role disembunyikan sesuai permintaan --}}
-            {{-- <p><strong>Role:</strong> {{ ucfirst($user->role ?? 'Customer') }}</p> --}}
             <p><strong>Bergabung sejak:</strong> {{ $user->created_at ? $user->created_at->format('d F Y') : 'N/A' }}</p>
         </div>
     </div>
