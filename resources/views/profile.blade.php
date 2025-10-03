@@ -6,47 +6,255 @@
 <div class="flex items-center justify-between mb-6">
     <h1 class="font-roboto-slab text-3xl font-bold">Profil</h1>
     <div class="flex gap-2">
+        <button type="button" class="btn btn-primary" onclick="openEditModal()">Edit Profil</button>
         <a href="mailto:support@lokaloka.com" class="btn btn-secondary">Customer Service</a>
         <a href="{{ route('logout') }}" class="btn btn-link" onclick="return confirm('Apakah Anda yakin ingin logout?')">Logout</a>
     </div>
 </div>
 
-<div class="grid md:grid-cols-2 gap-6">
+<section class="main-content grid md:grid-cols-2 gap-6">
     <div class="card p-6">
         <h2 class="font-roboto text-xl font-bold mb-4">Identitas Diri</h2>
-        <div class="space-y-2">
+        <div class="identity-info space-y-2">
             <p><strong>Username:</strong> {{ $user->name ?? 'N/A' }}</p>
             <p><strong>Email:</strong> {{ $user->email ?? 'N/A' }}</p>
             <p><strong>Nomor Telepon:</strong> {{ $user->phone_number ?? 'N/A' }}</p>
+            <p><strong>Role:</strong> {{ ucfirst($user->role ?? 'Customer') }}</p>
             <p><strong>Bergabung sejak:</strong> {{ $user->created_at ? $user->created_at->format('d F Y') : 'N/A' }}</p>
+            <p><strong>Update terakhir:</strong> {{ $user->updated_at ? $user->updated_at->format('d F Y') : 'N/A' }}</p>
         </div>
     </div>
 
     <div class="card p-6">
-        <h2 class="font-roboto text-xl font-bold mb-4">Edit Profil</h2>
-        <form method="POST" action="{{ route('profile.update') }}" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block text-sm">Nama</label>
-                <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="text" name="name" value="{{ old('name', $user->name) }}" required>
+        <div class="order-header flex items-center justify-between mb-4">
+            <h2 class="font-roboto text-xl font-bold">Pesanan Saya</h2>
+            <div class="filter-container relative">
+                <button id="filter-btn" type="button" class="btn btn-secondary">Filter Status ▼</button>
+                <div id="filter-options" class="filter-dropdown hidden absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl p-2 w-48 border z-10">
+                    <a href="#" data-status="semua" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100 active">Semua</a>
+                    <a href="#" data-status="diproses" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Diproses</a>
+                    <a href="#" data-status="dikirim" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Dikirim</a>
+                    <a href="#" data-status="selesai" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Selesai</a>
+                    <a href="#" data-status="batal" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Batal</a>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm">Email</label>
-                <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="email" name="email" value="{{ old('email', $user->email) }}" required>
-            </div>
-            <div>
-                <label class="block text-sm">Nomor Telepon</label>
-                <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}">
-            </div>
-            <button class="btn btn-primary">Simpan Perubahan</button>
-        </form>
-    </div>
-</div>
+        </div>
 
-<div class="card p-6 mt-6">
-    <div class="flex items-center justify-between">
-        <h2 class="font-roboto text-xl font-bold">Pesanan Saya</h2>
-        <a class="btn btn-secondary" href="{{ route('orders') }}">Lihat Daftar Pesanan</a>
+        <div class="order-list divide-y">
+            @if(isset($orders) && count($orders) > 0)
+                @foreach($orders as $order)
+                    @php
+                        $status = strtolower($order->status ?? 'diproses');
+                        $name = $order->product_name ?? 'Produk';
+                        $badge = match ($status) {
+                            'selesai' => 'bg-green-100 text-green-700',
+                            'dikirim' => 'bg-yellow-100 text-yellow-700',
+                            'diproses' => 'bg-blue-100 text-blue-700',
+                            'batal' => 'bg-red-100 text-red-700',
+                            default => 'bg-gray-100 text-gray-700'
+                        };
+                    @endphp
+                    <div class="order-item flex items-center justify-between py-3" data-status="{{ $status }}">
+                        <div class="order-details">
+                            <p class="item-name font-medium text-green-darker">{{ $name }}</p>
+                            <p class="order-status text-sm text-gray-600">
+                                Status:
+                                <span class="status px-2 py-0.5 rounded {{ $badge }}">
+                                    {{ ucfirst($status) }}
+                                </span>
+                            </p>
+                        </div>
+                        @if(!empty($order->created_at) || !empty($order->total))
+                        <div class="text-right text-sm text-gray-600">
+                            @if(!empty($order->created_at))
+                                <div>{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y') }}</div>
+                            @endif
+                            @if(!empty($order->total))
+                                <div class="font-semibold text-green-800">Rp {{ number_format((int)$order->total, 0, ',', '.') }}</div>
+                            @endif
+                        </div>
+                        @endif
+                    </div>
+                @endforeach
+            @else
+                <!-- Sample orders - hapus saat data nyata tersedia -->
+                <div class="order-item flex items-center justify-between py-3" data-status="selesai">
+                    <div class="order-details">
+                        <p class="item-name font-medium text-green-darker">Gudeg Jogja Authentic</p>
+                        <p class="order-status text-sm text-gray-600">Status:
+                            <span class="status px-2 py-0.5 rounded bg-green-100 text-green-700">Selesai</span>
+                        </p>
+                    </div>
+                    <div class="text-right text-sm text-gray-600">
+                        <div>12 Sep 2025</div>
+                        <div class="font-semibold text-green-800">Rp 85.000</div>
+                    </div>
+                </div>
+                <div class="order-item flex items-center justify-between py-3" data-status="dikirim">
+                    <div class="order-details">
+                        <p class="item-name font-medium text-green-darker">Kopi Arabica Temanggung</p>
+                        <p class="order-status text-sm text-gray-600">Status:
+                            <span class="status px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">Dikirim</span>
+                        </p>
+                    </div>
+                    <div class="text-right text-sm text-gray-600">
+                        <div>10 Sep 2025</div>
+                        <div class="font-semibold text-green-800">Rp 120.000</div>
+                    </div>
+                </div>
+                <div class="order-item flex items-center justify-between py-3" data-status="diproses">
+                    <div class="order-details">
+                        <p class="item-name font-medium text-green-darker">Batik Tulis Solo Premium</p>
+                        <p class="order-status text-sm text-gray-600">Status:
+                            <span class="status px-2 py-0.5 rounded bg-blue-100 text-blue-700">Diproses</span>
+                        </p>
+                    </div>
+                    <div class="text-right text-sm text-gray-600">
+                        <div>8 Sep 2025</div>
+                        <div class="font-semibold text-green-800">Rp 350.000</div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        @if((!isset($orders) || count($orders) == 0))
+            <div class="empty-orders hidden text-center text-gray-600 py-6" id="no-orders-message">
+                <p>Tidak ada pesanan yang ditemukan untuk filter ini.</p>
+            </div>
+        @else
+            <div class="empty-orders hidden text-center text-gray-600 py-6" id="no-orders-message">
+                <p>Tidak ada pesanan yang ditemukan untuk filter ini.</p>
+            </div>
+        @endif
+    </div>
+</section>
+
+<!-- Modal Edit Profil -->
+<div id="editProfileModal" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black bg-opacity-50" onclick="closeEditModal()" aria-hidden="true"></div>
+
+    <!-- Dialog -->
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="font-roboto text-lg font-bold text-green-darker">Edit Profil</h3>
+                <button type="button" class="text-gray-500 hover:text-gray-700" onclick="closeEditModal()" aria-label="Tutup">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6">
+                <form id="editProfileForm" method="POST" action="{{ route('profile.update') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-sm">Nama</label>
+                        <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="text" name="name" value="{{ old('name', $user->name) }}" required>
+                        @error('name')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm">Email</label>
+                        <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="email" name="email" value="{{ old('email', $user->email) }}" required>
+                        @error('email')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm">Nomor Telepon</label>
+                        <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}">
+                        @error('phone_number')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2">
+                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// ----- Modal Edit Profil -----
+function openEditModal() {
+    const m = document.getElementById('editProfileModal');
+    if (!m) return;
+    m.classList.remove('hidden');
+    setTimeout(() => m.querySelector('input[name="name"]')?.focus(), 50);
+}
+function closeEditModal() {
+    document.getElementById('editProfileModal')?.classList.add('hidden');
+}
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeEditModal(); });
+@if ($errors->any())
+document.addEventListener('DOMContentLoaded', openEditModal);
+@endif
+
+// ----- Filter Pesanan -----
+const filterBtn = document.getElementById('filter-btn');
+const filterDropdown = document.getElementById('filter-options');
+const noOrdersMsg = document.getElementById('no-orders-message');
+
+function toggleFilterDropdown() {
+    filterDropdown?.classList.toggle('hidden');
+}
+
+function setActiveFilter(anchorEl) {
+    filterDropdown?.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-100', 'font-semibold'));
+    anchorEl.classList.add('bg-gray-100', 'font-semibold');
+}
+
+function filterOrders(status) {
+    const items = document.querySelectorAll('.order-item');
+    let visible = 0;
+    items.forEach(item => {
+        const s = item.getAttribute('data-status') || '';
+        if (status === 'semua' || s === status) {
+            item.classList.remove('hidden');
+            visible++;
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+    if (noOrdersMsg) noOrdersMsg.classList.toggle('hidden', visible !== 0);
+    // Update button label
+    const label = status === 'semua' ? 'Filter Status ▼' : `Status: ${status.charAt(0).toUpperCase() + status.slice(1)} ▼`;
+    if (filterBtn) filterBtn.textContent = label;
+}
+
+// Event bindings
+filterBtn?.addEventListener('click', toggleFilterDropdown);
+filterDropdown?.addEventListener('click', (e) => {
+    const target = e.target.closest('a[data-status]');
+    if (!target) return;
+    e.preventDefault();
+    const status = target.getAttribute('data-status');
+    setActiveFilter(target);
+    filterOrders(status);
+    filterDropdown.classList.add('hidden');
+});
+
+// Close dropdown on outside click
+document.addEventListener('click', (e) => {
+    if (!filterDropdown) return;
+    if (!e.target.closest('#filter-options') && !e.target.closest('#filter-btn')) {
+        filterDropdown.classList.add('hidden');
+    }
+});
+
+// Init
+document.addEventListener('DOMContentLoaded', () => filterOrders('semua'));
+</script>
+@endpush
