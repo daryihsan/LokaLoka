@@ -68,7 +68,6 @@
                             </div>
 
                             <a href="{{ route('profile') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Profile</a>
-                            <a href="{{ route('orders') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Pesanan</a>
 
                             <hr class="my-2">
                             <form method="POST" action="{{ route('logout') }}">
