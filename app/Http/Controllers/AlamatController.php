@@ -25,4 +25,11 @@ class AlamatController extends Controller
 
         return redirect('/checkout');
     }
+
+    //hapus alamat dari session
+    public function delete(Request $request)
+    {
+        session()->forget(['nama_penerima', 'telepon_penerima', 'alamat_penerima']);
+        return redirect('/checkout')->with('success', 'Alamat berhasil dihapus.');
+    }
 }
