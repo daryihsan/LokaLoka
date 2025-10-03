@@ -4,17 +4,6 @@
 
 @section('content')
 <div class="min-h-screen text-green-darker font-open-sans bg-white">
-    <header class="sticky top-0 z-50 bg-primary text-white p-4 shadow-lg">
-        <div class="flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
-                    <span class="text-green-darker font-bold text-lg">L</span>
-                </div>
-                <h1 class="font-roboto-slab text-3xl font-bold tracking-wide">Loka Loka</h1>
-            </div>
-            <a href="{{ route('homepage') }}" class="bg-accent text-green-darker px-5 py-2 rounded-lg font-semibold shadow-lg hover:bg-accent/90">Kembali ke Beranda</a>
-        </div>
-    </header>
 
     <main class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg">
         <button onclick="history.back()" class="mb-4 text-sm text-gray-600 hover:text-green-darker font-medium">&larr; Kembali ke halaman sebelumnya</button>
@@ -74,20 +63,6 @@
             </div>
         </div>
     </main>
-
-    <footer class="bg-primary text-white p-8 mt-12">
-        <div class="max-w-7xl mx-auto text-center">
-            <div class="flex items-center justify-center gap-3 mb-4">
-                <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                    <span class="text-green-darker font-bold">L</span>
-                </div>
-                <h3 class="font-roboto-slab text-xl font-bold">Loka Loka</h3>
-            </div>
-            <p class="font-open-sans text-sm opacity-80">
-                Marketplace produk lokal terpercaya untuk mendukung UMKM Indonesia
-            </p>
-        </div>
-    </footer>
 
     <div id="toast-notification" class="fixed top-5 right-5 bg-white border border-gray-200 rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50">
         <div id="toast-message" class="font-medium text-green-darker"></div>
