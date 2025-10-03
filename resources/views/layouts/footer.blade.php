@@ -17,7 +17,7 @@
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('homepage') }}">Beranda</a></li>
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('searchfilter') }}">Katalog</a></li>
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('cart.show') }}">Keranjang</a></li>
-        <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('orders') }}">Pesanan</a></li>
+        {{-- <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('orders') }}">Pesanan</a></li> --}}
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('profile') }}">Profil</a></li>
       </ul>
     </div>

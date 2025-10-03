@@ -31,7 +31,7 @@ Route::get('/searchfilter', [ProductController::class, 'searchfilter'])->name('s
 
 // PROFIL & PESANAN
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
+// Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
 Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
 
 // KERANJANG (CART)
