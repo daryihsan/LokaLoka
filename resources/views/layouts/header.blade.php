@@ -6,27 +6,20 @@
         </a>
 
         <!-- Search visibility -->
-        @php
-            $showSearch = request()->routeIs('homepage', 'searchfilter');
-        @endphp
-        @if ($showSearch)
-        <form method="GET" action="{{ route('searchfilter') }}" class="flex-1">
-            <div class="relative max-w-2xl">
-                <input
-                    name="q"
-                    value="{{ request('q') }}"
-                    placeholder="Cari produk lokal terbaik..."
-                    class="w-full rounded-2xl pl-11 pr-4 py-2.5 text-green-darker focus:ring-2 focus:ring-[var(--brand-accent)] border border-gray-200"
-                />
-                <button type="submit" class="absolute left-3 top-2.5 text-gray-500" aria-label="Cari">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M21 21l-6-6m2-5a7 7 0 10-14 0 7 7 0 0014 0z"></path>
-                    </svg>
-                </button>
-            </div>
-        </form>
-        @endif
+    @if (request()->routeIs('homepage') || request()->routeIs('searchfilter'))
+      <form method="GET" action="{{ route('searchfilter') }}" class="flex-1">
+        <div class="relative max-w-2xl">
+          <input name="q" value="{{ request('q') }}" placeholder="Cari produk lokal terbaik..."
+                 class="w-full rounded-2xl pl-11 pr-4 py-2.5 text-green-darker focus:ring-2 focus:ring-[var(--brand-accent)] border border-gray-200" />
+          <button type="submit" class="absolute left-3 top-2.5 text-gray-500" aria-label="Cari">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 10-14 0 7 7 0 0014 0z"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+    @endif
 
         <!-- Actions -->
         <nav class="flex items-center gap-2 ml-auto">
