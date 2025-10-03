@@ -45,6 +45,7 @@ Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout
 Route::post('/checkout/process', [CartController::class, 'checkout'])->name('checkout.post');
 Route::get('/alamat', [AlamatController::class, 'showForm'])->name('alamat.form');
 Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat.update');
+Route::post('/alamat/delete', [AlamatController::class, 'delete'])->name('alamat.delete');
 Route::get('/payment/qris/{orderId}', [PaymentController::class, 'showQris'])->name('payment.qris');
 Route::get('/api/cart/items', [CartController::class, 'getCartItems'])->name('cart.items');
 
