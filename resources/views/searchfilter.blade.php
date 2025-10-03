@@ -23,6 +23,27 @@
                     {{ optional($categories->firstWhere('id', (int)request('category')))->name ?? request('category') }}
                 </span>
             @endif
+
+            @if(request('location'))
+                <span class="px-3 py-1 rounded-full bg-gray-100 text-sm border">
+                    Lokasi: {{ request('location') }}
+                </span>
+            @endif
+
+            @if(request('min_price') || request('max_price'))
+                <span class="px-3 py-1 rounded-full bg-gray-100 text-sm border">
+                    Harga:
+                    {{ request('min_price') ? 'Rp '.number_format((int)request('min_price'), 0, ',', '.') : '0' }}
+                    -
+                    {{ request('max_price') ? 'Rp '.number_format((int)request('max_price'), 0, ',', '.') : 'Tak terbatas' }}
+                </span>
+            @endif
+
+            @if(request('min_rating'))
+                <span class="px-3 py-1 rounded-full bg-gray-100 text-sm border">
+                    Rating: {{ request('min_rating') }}+
+                </span>
+            @endif
         </div>
         <a href="{{ route('homepage') }}" class="btn btn-secondary">Reset</a>
     </div>
