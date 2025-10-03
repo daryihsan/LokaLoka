@@ -807,6 +807,10 @@
                 console.log('Items to checkout:', selectedItems);
                 showNotification('Checkout berhasil!');
                 // Here you can add further checkout logic
+
+                // For demo, we'll just clear the selected items from cart
+                selectedItems.forEach(item => { delete cartData[item.id]; });
+                renderCart();
             }
 
         }
