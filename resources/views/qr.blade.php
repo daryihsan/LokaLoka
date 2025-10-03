@@ -42,7 +42,7 @@
                     </svg>
                 </div>
                 <h2 class="font-roboto text-2xl font-bold text-green-darker mb-2">Scan QR Code</h2>
-                <p class="text-gray-600">Gunakan aplikasi e-wallet atau banking untuk scan QR code di bawah ini</p>
+                <p class="text-gray-600">Gunakan aplikasi e-wallet atau m-banking untuk scan QR code di bawah ini</p>
             </div>
 
             <div class="bg-gray-100 p-8 rounded-xl mb-6 inline-block">

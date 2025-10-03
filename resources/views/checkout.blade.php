@@ -119,7 +119,7 @@
                     <span id="summary-total">Rp135.000</span>
                 </div>
             </div>
-            <button class="checkout-button">Bayar Sekarang</button>
+            <button class="checkout-button" onclick="location.href='{{ route('qr') }}'">Bayar Sekarang</button>
         </div>
     </div>
 </div>
