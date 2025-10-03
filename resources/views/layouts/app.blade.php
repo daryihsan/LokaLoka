@@ -64,5 +64,6 @@
     @include('layouts.footer')
 
     @stack('scripts')
+    @stack('modals')
 </body>
 </html>
