@@ -31,7 +31,6 @@ Route::get('/searchfilter', [ProductController::class, 'searchfilter'])->name('s
 
 // PROFIL & PESANAN
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
-// Route::get('/orders', [AuthController::class, 'showOrders'])->name('orders');
 Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
 
 // KERANJANG (CART)
@@ -48,6 +47,9 @@ Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat
 Route::post('/alamat/delete', [AlamatController::class, 'delete'])->name('alamat.delete');
 Route::get('/payment/qris/{orderId}', [PaymentController::class, 'showQris'])->name('payment.qris');
 Route::get('/api/cart/items', [CartController::class, 'getCartItems'])->name('cart.items');
+
+// TENTANG KAMI
+Route::view('/about', 'about')->name('about');
 
 // =======================================================
 // ADMIN ROUTES (Cek Session & Role di Controller)

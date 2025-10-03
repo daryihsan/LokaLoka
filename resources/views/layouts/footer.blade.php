@@ -26,7 +26,7 @@
       <h3 class="font-semibold text-green-darker mb-3">Bantuan</h3>
       <ul class="space-y-2 text-sm">
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="mailto:support@lokaloka.com">Customer Service</a></li>
-        <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="#">FAQ</a></li>
+        <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="{{ route('about') }}">FAQ</a></li>
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="#">Kebijakan Privasi</a></li>
         <li><a class="text-gray-700 hover:text-[var(--brand-primary)]" href="#">Syarat & Ketentuan</a></li>
       </ul>
