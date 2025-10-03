@@ -52,7 +52,6 @@
 @endpush
 
 @section('content')
-<!-- Bagian interaktif (dari qr.blade.php) -->
 <div class="max-w-4xl mx-auto px-6 py-8">
     <div class="mb-4 text-sm text-gray-600">
         Order #{{ str_pad($order->id ?? 1, 6, '0', STR_PAD_LEFT) }}
@@ -193,7 +192,6 @@
     </div>
 </div>
 
-<!-- Bagian sederhana (dari payment.blade.php) -->
 <div class="qris-page">
     <div class="qris-container">
         <div class="qris-header">
@@ -222,7 +220,6 @@
 @endsection
 
 @push('scripts')
-<!-- Scripts from original qr.blade.php -->
 <script>
     function generateQRCode() {
         const qrContainer = document.getElementById('qr-code');
@@ -356,24 +353,28 @@
         generateQRCode();
         startTimer();
         autoCheckPayment();
-        document.getElementById('success-modal').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.add('hidden');
-        });
-    });
-</script>
 
-<!-- Scripts from original payment.blade.php -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+        // Set payment amount on the small QRIS card
         const urlParams = new URLSearchParams(window.location.search);
-        const total = parseInt(urlParams.get('total')) || 0;
+        const totalFromUrl = parseInt(urlParams.get('total'), 10);
+        const bladeTotal = parseInt('{{ $order->total ?? 0 }}', 10);
+        const total = !isNaN(totalFromUrl) && totalFromUrl > 0 ? totalFromUrl : (isNaN(bladeTotal) ? 0 : bladeTotal);
+
         const formattedTotal = new Intl.NumberFormat('id-ID', {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0
         }).format(total);
+
         const el = document.getElementById('payment-amount');
         if (el) el.innerText = formattedTotal;
+
+        const modal = document.getElementById('success-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.add('hidden');
+            });
+        }
     });
 </script>
 @endpush
