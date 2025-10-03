@@ -42,8 +42,8 @@
             </a>
 
             @if(session()->has('user_id'))
-                @if (request()->routeIs('homepage'))
-                    <!-- Profile dropdown hanya di homepage -->
+                @if (request()->routeIs('homepage') || request()->routeIs('searchfilter') || request()->routeIs('product.detail'))
+                    <!-- Profile dropdown -->
                     <div class="relative">
                         <button
                             type="button"
@@ -76,12 +76,6 @@
                             </form>
                         </div>
                     </div>
-                @else
-                    <!-- Di halaman lain tetap tampil tombol Logout seperti sebelumnya -->
-                    <a href="{{ route('logout') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">
-                        <span class="hidden md:inline">Logout</span>
-                    </a>
-                @endif
             @else
                 <a href="{{ route('login') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">Login</a>
                 <a href="{{ route('register') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">Daftar</a>

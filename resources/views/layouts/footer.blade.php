@@ -1,4 +1,4 @@
-<footer class="bg-white border-t border-gray-200 mt-10">
+<footer class="sticky top-0 z-50 p-4 text-white shadow-xl bg-primary">
   <div class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
     <!-- Brand -->
     <div>
