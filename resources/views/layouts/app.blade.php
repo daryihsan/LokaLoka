@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Loka Loka')</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@700&family=Roboto:wght@400;700&family=Open+Sans:wght@400&display=swap" rel="stylesheet">
-
-    <!-- Tailwind (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Base colors: gunakan tone yang sudah dipakai (green/primary/accent) -->
     <style>
         :root {
             --brand-primary: #5c6641;
@@ -27,7 +23,6 @@
         .hover\:bg-primary-dark:hover { background-color: var(--brand-primary-dark); }
         .text-accent { color: var(--brand-accent); }
         .focus-ring { outline: none; box-shadow: 0 0 0 3px rgba(139,157,70,.35); }
-        /* Komponen ringan yang konsisten */
         .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:.75rem; padding:.625rem 1rem; font-weight:600; transition:.15s; }
         .btn-primary { background: var(--brand-primary); color:#fff; }
         .btn-primary:hover { background: var(--brand-primary-dark); }
@@ -65,6 +60,8 @@
     <main class="container-page">
         @yield('content')
     </main>
+
+    @include('layouts.footer')
 
     @stack('scripts')
 </body>
