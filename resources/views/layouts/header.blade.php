@@ -33,13 +33,15 @@
 
         <!-- Actions -->
         <div class="flex gap-3">
-            <a href="{{ route('cart.show') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3 flex items-center gap-2" title="Keranjang Belanja" aria-label="Keranjang">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L6 18h12M6 18a2 2 0 100 4 2 2 0 000-4zM16 18a2 2 0 100 4 2 2 0 000-4z"></path>
-                </svg>
-                <span class="hidden md:inline">Keranjang</span>
-            </a>
+            @if(session()->has('user_id'))
+                <a href="{{ route('cart.show') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3 flex items-center gap-2" title="Keranjang Belanja" aria-label="Keranjang">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L6 18h12M6 18a2 2 0 100 4 2 2 0 000-4zM16 18a2 2 0 100 4 2 2 0 000-4z"></path>
+                    </svg>
+                    <span class="hidden md:inline">Keranjang</span>
+                </a>
+            @endif
 
             @if(session()->has('user_id'))
                 @if (request()->routeIs('homepage') || request()->routeIs('searchfilter') || request()->routeIs('product.detail'))

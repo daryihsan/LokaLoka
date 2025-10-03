@@ -236,7 +236,7 @@
             </div>
         `;
         setTimeout(() => {
-            if (confirm('Waktu pembayaran telah habis. Buat pesanan baru?')) window.location.href = '{{ route("checkout") }}';
+            if (confirm('Waktu pembayaran telah habis. Buat pesanan baru?')) window.location.href = '{{ route("checkout.show") }}';
         }, 2000);
     }
 

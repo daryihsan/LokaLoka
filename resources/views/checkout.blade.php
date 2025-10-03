@@ -64,7 +64,7 @@
                 <strong>{{ session('nama_penerima', 'John Doe') }}</strong>
                 <p>{{ session('telepon_penerima', '(+62) 812-3456-7890') }}</p>
                 <p>{{ session('alamat_penerima', 'Jl. Pahlawan No. 123, Mugassari, Kec. Semarang Sel., Kota Semarang, Jawa Tengah 50243') }}</p>
-                <a href="{{ route('alamat.form') }}" class="change-link">Ubah Alamat</a>
+                <button class="checkout-button" onclick="location.href='{{ route('alamat.form') }}'">Ubah Alamat</button>
             </div>
         </div>
 
@@ -119,7 +119,7 @@
                     <span id="summary-total">Rp135.000</span>
                 </div>
             </div>
-            <button class="checkout-button" onclick="location.href='{{ route('qr') }}'">Bayar Sekarang</button>
+            <button class="checkout-button" onclick="location.href='{{ route('payment.qris') }}'">Bayar Sekarang</button>
         </div>
     </div>
 </div>
@@ -192,7 +192,7 @@
             event.preventDefault();
             const totalText = document.getElementById('summary-total').innerText;
             const totalValue = parseInt(totalText.replace(/[^0-9]/g, ''));
-            window.location.href = `{{ route('payment') }}?total=${totalValue}`;
+            window.location.href = `{{ route('payment.qris') }}?total=${totalValue}`;
         });
     }
 </script>
