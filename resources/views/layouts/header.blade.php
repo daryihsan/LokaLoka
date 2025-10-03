@@ -78,6 +78,7 @@
                             </form>
                         </div>
                     </div>
+                @endif
             @else
                 @unless (request()->routeIs('login') || request()->routeIs('register'))
                     <a href="{{ route('login') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">Login</a>
