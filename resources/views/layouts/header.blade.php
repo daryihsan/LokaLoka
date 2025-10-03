@@ -22,7 +22,7 @@
                         class="w-full rounded-2xl pl-12 pr-4 py-3 text-green-darker focus:outline-none focus:ring-2 focus:ring-accent border-0 shadow-lg"
                     />
                     <button type="submit" class="absolute left-3 top-3.5 h-5 w-5 text-green-dark" style="background: none; border: none; padding: 0;" aria-label="Cari">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
@@ -43,17 +43,46 @@
 
             @if(session()->has('user_id'))
                 @if (request()->routeIs('homepage'))
-                    <a href="{{ route('profile') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3 flex items-center gap-2">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        <span class="hidden md:inline">Profil</span>
+                    <!-- Profile dropdown hanya di homepage -->
+                    <div class="relative">
+                        <button
+                            type="button"
+                            class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3 flex items-center gap-2"
+                            onclick="toggleUserMenu()"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-controls="user-dropdown"
+                            id="user-menu-button"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <span class="hidden md:inline">{{ auth()->user()->name ?? 'User' }}</span>
+                        </button>
+
+                        <div id="user-dropdown" class="hidden absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl p-2 w-48 border z-50">
+                            <div class="px-4 py-2 border-b">
+                                <p class="font-semibold text-green-darker">{{ auth()->user()->name ?? 'User' }}</p>
+                                <p class="text-sm text-gray-500">{{ auth()->user()->email ?? '' }}</p>
+                            </div>
+
+                            <a href="{{ route('profile') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Profile</a>
+                            <a href="{{ route('orders') }}" class="block px-4 py-2 text-green-darker hover:bg-gray-100 rounded-lg">Pesanan</a>
+
+                            <hr class="my-2">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left block px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">Logout</button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <!-- Di halaman lain tetap tampil tombol Logout seperti sebelumnya -->
+                    <a href="{{ route('logout') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">
+                        <span class="hidden md:inline">Logout</span>
                     </a>
                 @endif
-                <a href="{{ route('logout') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">
-                    <span class="hidden md:inline">Logout</span>
-                </a>
             @else
                 <a href="{{ route('login') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">Login</a>
                 <a href="{{ route('register') }}" class="text-white hover:bg-white hover:bg-opacity-20 rounded-xl p-3">Daftar</a>
@@ -61,3 +90,36 @@
         </div>
     </div>
 </header>
+
+<script>
+function toggleUserMenu() {
+    const menu = document.getElementById('user-dropdown');
+    const btn = document.getElementById('user-menu-button');
+    const willOpen = menu.classList.contains('hidden');
+    menu.classList.toggle('hidden');
+    btn?.setAttribute('aria-expanded', String(willOpen));
+}
+
+document.addEventListener('click', function (e) {
+    const menu = document.getElementById('user-dropdown');
+    const btn = document.getElementById('user-menu-button');
+    if (!menu || !btn) return;
+    if (!menu.classList.contains('hidden')) {
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+});
+
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        const menu = document.getElementById('user-dropdown');
+        const btn = document.getElementById('user-menu-button');
+        if (menu && btn && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+});
+</script>
