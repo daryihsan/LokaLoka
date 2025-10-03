@@ -44,7 +44,7 @@
   </div>
 
   <div class="border-t border-gray-200">
-    <div class="max-w-7xl mx-auto px-6 py-4 text-xs text-gray-500 flex items-center justify-between">
+    <div class=""text-white hover:text-white max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-sm">
       <span>© {{ date('Y') }} LokaLoka. All rights reserved.</span>
       <span>“Cinta Lokal, Belanja Loka.”</span>
     </div>
