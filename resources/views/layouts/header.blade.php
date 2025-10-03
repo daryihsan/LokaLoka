@@ -5,9 +5,9 @@
             <span class="text-green-darker">Loka</span><span class="text-accent">Loka</span>
         </a>
 
-        <!-- Search (opsional: bisa disembunyikan di halaman tertentu) -->
+        <!-- Search visibility -->
         @php
-            $showSearch = $showSearch ?? true;
+            $showSearch = request()->routeIs('homepage', 'searchfilter');
         @endphp
         @if ($showSearch)
         <form method="GET" action="{{ route('searchfilter') }}" class="flex-1">
