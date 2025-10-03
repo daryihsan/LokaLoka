@@ -36,8 +36,8 @@
     <div>
       <h3 class="font-semibold text-green-darker mb-3">Kontak</h3>
       <ul class="text-white hover:text-white">
-        <li>Email: support@lokaloka.com</li>
-        <li>Telp : +62-812-3456-7890</li>
+        <li><a href="mailto:support@lokaloka.com">Email: support@lokaloka.com</a></li>
+        <li><a href="tel:+6281234567890">Telp : +62-812-3456-7890</a></li>
         <li>Alamat: Semarang, Indonesia</li>
       </ul>
     </div>
