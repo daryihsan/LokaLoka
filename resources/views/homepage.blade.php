@@ -143,10 +143,17 @@
 <script>
     function addToCart(event, productId) {
         event.preventDefault();
+
         @guest
             showToast('error', 'Silakan login terlebih dahulu untuk menambah ke keranjang!');
+            setTimeout(() => window.location.href = '{{ route('login') }}', 1200);
             return;
         @endguest
+
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
 
         fetch('{{ route('cart.add') }}', {
             method: 'POST',
@@ -155,14 +162,25 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'X-Requested-With': 'XMLHttpRequest'
             },
+            credentials: 'same-origin',
             body: JSON.stringify({ product_id: productId, quantity: 1 })
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) showToast('success', data.message || 'Produk berhasil ditambahkan ke keranjang!');
-            else if (data.error) showToast('error', data.error);
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (response.status === 401) {
+                showToast('error', 'Silakan login terlebih dahulu untuk menambah ke keranjang!');
+                setTimeout(() => window.location.href = '{{ route('login') }}', 1200);
+                return;
+            }
+            if (!response.ok) throw new Error(data?.error || 'Gagal menambahkan produk ke keranjang.');
+            showToast('success', data.message || 'Produk berhasil ditambahkan ke keranjang!');
         })
-        .catch(() => showToast('error', 'Terjadi kesalahan saat menghubungi server.'));
+        .catch((err) => showToast('error', err.message || 'Terjadi kesalahan saat menghubungi server.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.innerHTML = originalHtml;
+        });
     }
 
     function showToast(type, message) {
