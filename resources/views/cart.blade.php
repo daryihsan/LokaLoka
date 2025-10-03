@@ -286,7 +286,7 @@ function proceedToCheckout() {
         }
     });
     sessionStorage.setItem('checkoutItems', JSON.stringify(selected));
-    window.location.href = "{{ url('/checkout') }}";
+    window.location.href = "{{ route('checkout.show') }}";
 }
 
 /* ==== Init ==== */
