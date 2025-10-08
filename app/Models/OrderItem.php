@@ -14,6 +14,9 @@ class OrderItem extends Model
      *
      * @var list<string>
      */
+
+    public $timestamps = false; 
+
     protected $fillable = [
         'order_id',
         'product_id',
@@ -27,7 +30,7 @@ class OrderItem extends Model
      */
     public function order()
     {
-        return $this->belongsTo(Orders::class);
+        return $this->belongsTo(Orders::class, 'order_id');
     }
 
     /**
@@ -35,6 +38,6 @@ class OrderItem extends Model
      */
     public function product()
     {
-        return $this->belongsTo(Products::class);
+        return $this->belongsTo(Products::class, 'product_id');
     }
 }
