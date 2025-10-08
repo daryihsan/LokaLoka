@@ -19,20 +19,22 @@ class ProductController extends Controller
         // Ambil kategori untuk filter/sidebar di homepage
         $categories = Categories::all();
 
-        // 1. Ambil Produk Terlaris (Berdasarkan jumlah order item, asumsi: top 4)
+        // Ambil Produk Terlaris (Produk aktif & stok > 0)
         $hotProducts = Products::select('products.*', DB::raw('SUM(order_items.qty) as total_sold'))
             ->join('order_items', 'products.id', '=', 'order_items.product_id')
-            ->where('is_active', true)
-            ->where('stock', '>', 0)
-            ->groupBy('products.id', 'products.name', 'products.price', 'products.description', 'products.image_url', 'products.weight', 'products.stock', 'products.category_id', 'products.is_active', 'products.created_at', 'products.updated_at')
+            ->where('is_active', true) // Produk aktif saja
+            ->where('stock', '>', 0)   // Produk dengan stok > 0
+            ->groupBy('products.id', 'products.name', 'products.price', 
+                'products.description', 'products.image_url', 'products.weight', 'products.stock',
+                'products.category_id', 'products.is_active', 'products.created_at', 'products.updated_at')
             ->orderByDesc('total_sold')
             ->take(4)
             ->get();
 
-        // 2. Ambil Produk Rekomendasi (Terbaru atau acak, asumsi: 12 produk terbaru)
+        // Ambil Produk Rekomendasi Terbaru (Produk aktif & stok > 0)
         $recommendedProducts = Products::with('category')
-            ->where('is_active', true)
-            ->where('stock', '>', 0)
+            ->where('is_active', true) // Produk aktif saja
+            ->where('stock', '>', 0)   // Produk dengan stok > 0
             ->latest()
             ->take(12)
             ->get();

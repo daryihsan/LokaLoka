@@ -25,107 +25,54 @@
         </div>
     </div>
 
-    <div class="card p-6">
-        <div class="order-header flex items-center justify-between mb-4">
-            <h2 class="font-roboto text-xl font-bold">Pesanan Saya</h2>
-            <div class="filter-container relative">
-                <button id="filter-btn" type="button" class="btn btn-secondary">Filter Status ▼</button>
-                <div id="filter-options" class="filter-dropdown hidden absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl p-2 w-48 border z-10">
-                    <a href="#" data-status="semua" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100 active">Semua</a>
-                    <a href="#" data-status="diproses" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Diproses</a>
-                    <a href="#" data-status="dikirim" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Dikirim</a>
-                    <a href="#" data-status="selesai" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Selesai</a>
-                    <a href="#" data-status="batal" class="block px-3 py-2 rounded-lg text-sm hover:bg-gray-100">Batal</a>
-                </div>
-            </div>
+    <div class="card p-6 lg:col-span-1">
+        {{-- PERBAIKAN: Tombol Kembali dengan history.back() atau ke homepage --}}
+        <button class="btn btn-secondary mb-4"
+            onclick="history.length > 1 ? history.back() : window.location.href = '{{ route('homepage') }}'">
+            Kembali
+        </button>
+        <h2 class="font-roboto text-xl font-bold mb-4">Daftar Pesanan</h2>
+        <div class="filter-controls flex justify-between items-center mb-4">
+            {{-- Tombol Filter --}}
+            <button id="filter-btn" class="btn btn-secondary">Filter Status</button>
         </div>
-
         <div class="order-list divide-y">
+            <div id="no-orders-message" class="text-center text-gray-500 py-4 hidden">Tidak ada pesanan dengan status ini.</div>
+            
             @if(isset($orders) && count($orders) > 0)
+                {{-- PERBAIKAN: Loop menggunakan data $orders dari Controller (dengan relasi OrderItems & Product) --}}
                 @foreach($orders as $order)
                     @php
                         $status = strtolower($order->status ?? 'diproses');
-                        $name = $order->product_name ?? 'Produk';
+                        // Ambil nama produk pertama dari orderItems
+                        $firstItemName = $order->orderItems->first()->product->name ?? 'Produk Dihapus';
+                        
                         $badge = match ($status) {
                             'selesai' => 'bg-green-100 text-green-700',
-                            'dikirim' => 'bg-yellow-100 text-yellow-700',
-                            'diproses' => 'bg-blue-100 text-blue-700',
-                            'batal' => 'bg-red-100 text-red-700',
+                            'dikirim' => 'bg-blue-100 text-blue-700',
+                            'diproses' => 'bg-yellow-100 text-yellow-700',
+                            'dibatalkan' => 'bg-red-100 text-red-700',
                             default => 'bg-gray-100 text-gray-700'
                         };
                     @endphp
+                    {{-- Tambahkan data-status untuk filter JS --}}
                     <div class="order-item flex items-center justify-between py-3" data-status="{{ $status }}">
-                        <div class="order-details">
-                            <p class="item-name font-medium text-green-darker">{{ $name }}</p>
-                            <p class="order-status text-sm text-gray-600">
-                                Status:
-                                <span class="status px-2 py-0.5 rounded {{ $badge }}">
-                                    {{ ucfirst($status) }}
-                                </span>
+                        <div class="order-details flex-1 min-w-0">
+                            <p class="font-semibold text-green-darker">#{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }} - {{ $firstItemName }}...</p>
+                            <p class="order-status text-sm text-gray-600">Status:
+                                <span class="status px-2 py-0.5 rounded {{ $badge }}">{{ ucfirst($status) }}</span>
                             </p>
                         </div>
-                        @if(!empty($order->created_at) || !empty($order->total))
-                        <div class="text-right text-sm text-gray-600">
-                            @if(!empty($order->created_at))
-                                <div>{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y') }}</div>
-                            @endif
-                            @if(!empty($order->total))
-                                <div class="font-semibold text-green-800">Rp {{ number_format((int)$order->total, 0, ',', '.') }}</div>
-                            @endif
+                        <div class="text-right text-sm text-gray-600 ml-4">
+                            <div>{{ $order->created_at->format('d M Y') }}</div>
+                            <div class="font-semibold text-green-800">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
                         </div>
-                        @endif
                     </div>
                 @endforeach
             @else
-                <!-- Sample orders - hapus saat data nyata tersedia -->
-                <div class="order-item flex items-center justify-between py-3" data-status="selesai">
-                    <div class="order-details">
-                        <p class="item-name font-medium text-green-darker">Gudeg Jogja Authentic</p>
-                        <p class="order-status text-sm text-gray-600">Status:
-                            <span class="status px-2 py-0.5 rounded bg-green-100 text-green-700">Selesai</span>
-                        </p>
-                    </div>
-                    <div class="text-right text-sm text-gray-600">
-                        <div>12 Sep 2025</div>
-                        <div class="font-semibold text-green-800">Rp 85.000</div>
-                    </div>
-                </div>
-                <div class="order-item flex items-center justify-between py-3" data-status="dikirim">
-                    <div class="order-details">
-                        <p class="item-name font-medium text-green-darker">Kopi Arabica Temanggung</p>
-                        <p class="order-status text-sm text-gray-600">Status:
-                            <span class="status px-2 py-0.5 rounded bg-yellow-100 text-yellow-700">Dikirim</span>
-                        </p>
-                    </div>
-                    <div class="text-right text-sm text-gray-600">
-                        <div>10 Sep 2025</div>
-                        <div class="font-semibold text-green-800">Rp 120.000</div>
-                    </div>
-                </div>
-                <div class="order-item flex items-center justify-between py-3" data-status="diproses">
-                    <div class="order-details">
-                        <p class="item-name font-medium text-green-darker">Batik Tulis Solo Premium</p>
-                        <p class="order-status text-sm text-gray-600">Status:
-                            <span class="status px-2 py-0.5 rounded bg-blue-100 text-blue-700">Diproses</span>
-                        </p>
-                    </div>
-                    <div class="text-right text-sm text-gray-600">
-                        <div>8 Sep 2025</div>
-                        <div class="font-semibold text-green-800">Rp 350.000</div>
-                    </div>
-                </div>
+                <p id="no-orders-message" class="text-center text-gray-500 py-4">Anda belum memiliki pesanan.</p>
             @endif
         </div>
-
-        @if((!isset($orders) || count($orders) == 0))
-            <div class="empty-orders hidden text-center text-gray-600 py-6" id="no-orders-message">
-                <p>Tidak ada pesanan yang ditemukan untuk filter ini.</p>
-            </div>
-        @else
-            <div class="empty-orders hidden text-center text-gray-600 py-6" id="no-orders-message">
-                <p>Tidak ada pesanan yang ditemukan untuk filter ini.</p>
-            </div>
-        @endif
     </div>
 </section>
 

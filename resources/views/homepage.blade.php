@@ -141,17 +141,35 @@
 
 @push('scripts')
 <script>
+function showToast(type, message) {
+        const toast = document.getElementById('toast-notification');
+        const toastMessage = document.getElementById('toast-message');
+        if (type === 'success') {
+            toast.style.backgroundColor = '#d1fae5';
+            toastMessage.style.color = '#059669';
+        } else {
+            toast.style.backgroundColor = 'fee2e2';
+            toastMessage.style.color = '#dc2626';
+        }
+        toastMessage.textContent = message;
+        toast.classList.remove('translate-x-full');
+        setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+    }
+    
     function addToCart(event, productId) {
         event.preventDefault();
-
-        @guest
+        
+        // Cek Autentikasi di sisi client untuk UX yang lebih cepat (validasi server tetap ada)
+        // PERBAIKAN: Gunakan Session::has('logged_in') yang dicetak ke JS
+        if (!{{ Session::has('logged_in') ? 'true' : 'false' }}) {
             showToast('error', 'Silakan login terlebih dahulu untuk menambah ke keranjang!');
-            setTimeout(() => window.location.href = '{{ route('login') }}', 1200);
+            setTimeout(() => window.location.href = "{{ route('login') }}", 1200);
             return;
-        @endguest
+        }
 
         const btn = event.currentTarget;
         const originalHtml = btn.innerHTML;
+        
         btn.disabled = true;
         btn.classList.add('opacity-50', 'cursor-not-allowed');
 
@@ -162,17 +180,24 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            credentials: 'same-origin',
-            body: JSON.stringify({ product_id: productId, quantity: 1 })
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: 1
+            }) // Default 1
         })
         .then(async (response) => {
             const data = await response.json().catch(() => ({}));
+
             if (response.status === 401) {
-                showToast('error', 'Silakan login terlebih dahulu untuk menambah ke keranjang!');
-                setTimeout(() => window.location.href = '{{ route('login') }}', 1200);
+                showToast('error', data.error || 'Sesi login tidak terdeteksi. Silakan login kembali.');
+                setTimeout(() => window.location.href = "{{ route('login') }}", 1200);
                 return;
             }
-            if (!response.ok) throw new Error(data?.error || 'Gagal menambahkan produk ke keranjang.');
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Gagal menambahkan produk ke keranjang.');
+            }
+
             showToast('success', data.message || 'Produk berhasil ditambahkan ke keranjang!');
         })
         .catch((err) => showToast('error', err.message || 'Terjadi kesalahan saat menghubungi server.'))
@@ -182,6 +207,7 @@
             btn.innerHTML = originalHtml;
         });
     }
+
 
     function showToast(type, message) {
         const toast = document.getElementById('toast-notification');

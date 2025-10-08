@@ -20,20 +20,33 @@
                          class="rounded-lg shadow-md w-full object-cover">
                 </div>
 
-                <form id="add-to-cart-form">
+                <form id="add-to-cart-form" onsubmit="addToCartFormSubmit(event)">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <div class="flex items-center gap-4 mb-4">
-                        <label for="quantity" class="text-lg font-semibold text-green-darker">Jumlah:</label>
-                        <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ $product->stock }}"
-                               class="w-20 text-center p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
-                        <span class="text-sm text-gray-500">Stok: {{ $product->stock }}</span>
+                    <div class="flex items-center gap-4 mb-6">
+                        <label for="quantity" class="text-lg font-semibold
+                            text-green-darker">Jumlah:</label>
+                        
+                        <input type="number" id="quantity" name="quantity" value="1"
+                            min="1" 
+                            max="{{ $product->stock }}"
+                            class="w-20 text-center p-2 border border-gray-300
+                            rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                        
+                        <span class="text-sm text-gray-500">Stok: {{ $product->stock
+                        }}</span>
                     </div>
-
+                    
                     <button type="submit"
-                            class="w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-medium transition-colors {{ $product->stock == 0 ? 'opacity-50 cursor-not-allowed' : '' }}"
-                            {{ $product->stock == 0 ? 'disabled' : '' }}>
-                        {{ $product->stock == 0 ? 'Stok Habis' : 'Tambah ke Keranjang' }}
+                        class="w-full bg-primary hover:bg-primary-dark text-white py-3
+                        rounded-lg font-medium transition-colors {{ $product->stock == 0 ? 'opacity-50
+                        cursor-not-allowed' : '' }}"
+                        
+                        {{ $product->stock == 0 ?
+                        'disabled' : '' }}>
+                        
+                        {{ $product->stock == 0 ?
+                        'Stok Habis' : 'Tambah ke Keranjang' }}
                     </button>
                 </form>
             </div>
@@ -72,10 +85,29 @@
 
 @push('scripts')
 <script>
+// Perbaikan: Ganti event listener agar memanggil fungsi baru untuk detail produk
 document.getElementById('add-to-cart-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData.entries());
+    
+    // PERBAIKAN: Gunakan fungsi addToCart yang sudah didefinisikan di homepage.blade.php
+    // agar logika Auth check & toast seragam. Kita akan re-define fungsi ini di global script.
+    // Panggil langsung logika AJAX dari sini, meniru fungsi di homepage.blade.php
+    
+    const btn = event.currentTarget.querySelector('button[type="submit"]');
+    const originalHtml = btn.innerHTML;
+    
+    // Cek Autentikasi di sisi client untuk UX yang lebih cepat (validasi server tetap ada)
+    if (!{{ Session::has('logged_in') ? 'true' : 'false' }}) {
+        showToast('error', 'Silakan login terlebih dahulu untuk menambah ke keranjang!');
+        setTimeout(() => window.location.href = "{{ route('login') }}", 1200);
+        return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
 
     try {
         const res = await fetch('{{ route('cart.add') }}', {
@@ -85,45 +117,46 @@ document.getElementById('add-to-cart-form')?.addEventListener('submit', async (e
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data) // Mengirim product_id dan quantity
         });
 
+        const json = await res.json().catch(() => ({}));
+        
         if (res.status === 401) {
-            window.location.href = '{{ route('login') }}';
+            showToast('error', json.error || 'Sesi login tidak terdeteksi. Silakan login kembali.');
+            setTimeout(() => window.location.href = "{{ route('login') }}", 1200);
             return;
         }
 
-        const json = await res.json();
-        if (json.success || json.message) {
-            showToast('success', json.message || 'Produk berhasil ditambahkan ke keranjang!');
-        } else if (json.error) {
-            showToast('error', json.error);
-        } else {
-            showToast('error', 'Terjadi kesalahan tak terduga.');
+        if (!res.ok) {
+            // Error code 400 atau 500
+            throw new Error(json.error || 'Gagal menambahkan produk ke keranjang.');
         }
-    } catch (e) {
-        showToast('error', 'Terjadi kesalahan saat menghubungi server.');
+
+        showToast('success', json.message || 'Produk berhasil ditambahkan ke keranjang!');
+
+    } catch (err) {
+        showToast('error', err.message || 'Terjadi kesalahan saat menghubungi server.');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.innerHTML = originalHtml;
     }
 });
 
 function showToast(type, message) {
     const toast = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
-
     if (type === 'success') {
         toast.style.backgroundColor = '#d1fae5';
         toastMessage.style.color = '#059669';
     } else {
-        toast.style.backgroundColor = '#fee2e2';
+        toast.style.backgroundColor = 'fee2e2';
         toastMessage.style.color = '#dc2626';
     }
-
     toastMessage.textContent = message;
     toast.classList.remove('translate-x-full');
-
-    setTimeout(() => {
-        toast.classList.add('translate-x-full');
-    }, 3000);
+    setTimeout(() => toast.classList.add('translate-x-full'), 3000);
 }
 </script>
 @endpush

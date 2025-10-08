@@ -30,8 +30,13 @@
 @section('content')
 <div class="container-page-narrow">
     <div class="flex items-center justify-between mb-6">
-        <button class="btn btn-secondary" onclick="history.length>1?history.back():window.location='{{ route('homepage') }}'">← Kembali</button>
-        <h1 class="font-roboto-slab text-3xl font-bold text-green-darker">Keranjang Belanja</h1>
+        {{-- PERBAIKAN: Tombol Kembali dengan history.back() atau ke homepage --}}
+        <button class="btn btn-secondary"
+            onclick="history.length > 1 ? history.back() : window.location.href = '{{ route('homepage') }}'">
+            Kembali
+        </button>
+        <h1 class="font-roboto-slab text-3xl font-bold text-green-darker">Keranjang
+            Belanja</h1>
         <div></div>
     </div>
 
@@ -139,8 +144,16 @@ function showConfirmModal(message) {
 
 /* ==== Data fetching ==== */
 async function fetchCart() {
-    const res = await fetch('{{ route('cart.items') }}', { headers:{'X-Requested-With':'XMLHttpRequest'}});
-    if (res.status === 401) { window.location.href = '{{ route('login') }}'; return { items:[], count:0, total:0 }; }
+    const res = await fetch('{{ route('cart.items') }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+
+    if (res.status === 401) {
+        window.location.href = '{{ route('login') }}';
+        return { items: [], count: 0, total: 0 };
+    }
     return res.json();
 }
 
@@ -149,7 +162,8 @@ async function renderCart() {
     const list = document.getElementById('cart-items-list');
     const empty = document.getElementById('empty-state');
     const data = await fetchCart();
-
+    
+    // Total items ditampilkan di header list
     document.getElementById('total-items').textContent = data.count ?? 0;
 
     if (!data.items || data.items.length === 0) {
@@ -159,22 +173,28 @@ async function renderCart() {
         document.getElementById('checkout-btn').disabled = true;
         setSelectAllState();
         return;
-    } else {
-        empty.classList.add('hidden');
     }
 
+    empty.classList.add('hidden');
+
+    // PERBAIKAN: Menggunakan map dan join untuk render HTML
     list.innerHTML = data.items.map(i => `
         <div class="flex items-center gap-4 border border-gray-200 rounded-lg p-4">
-            <input type="checkbox" class="item-check w-5 h-5" data-item-id="${i.id}" data-price="${i.price}" data-name="${i.name}" data-product-id="${i.product_id}" checked>
-            <img src="${i.image_url || 'https://placehold.co/80x80?text=IMG'}" alt="${i.name}" class="w-16 h-16 object-cover rounded">
+            <input type="checkbox" class="item-check w-5 h-5" data-item-id="${i.id}"
+                data-price="${i.price}" data-name="${i.name}" data-product-id="${i.product_id}" checked>
+            <img src="${i.image_url || 'https://placehold.co/80x80?text=IMG'}"
+                alt="${i.name}" class="w-16 h-16 object-cover rounded">
             <div class="flex-1">
                 <div class="font-semibold">${i.name}</div>
                 <div class="text-sm text-gray-500">${rp(i.price)}</div>
             </div>
             <div class="flex items-center gap-2">
-                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id}, -1)">-</button>
-                <input type="number" class="w-16 text-center border rounded p-1 qty-input" data-item-id="${i.id}" value="${i.quantity}" min="1">
-                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id}, 1)">+</button>
+                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id},
+                    -1)">-</button>
+                <input type="number" class="w-16 text-center border rounded p-1 qty-input"
+                    data-item-id="${i.id}" value="${i.quantity}" min="1">
+                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id},
+                    1)">+</button>
             </div>
             <div class="w-24 text-right font-semibold">${rp(i.price * i.quantity)}</div>
             <button class="btn btn-secondary" onclick="removeItem(${i.id})">Hapus</button>
@@ -235,19 +255,61 @@ async function updateQty(itemId, qty) {
         headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'X-Requested-With':'XMLHttpRequest'},
         body: JSON.stringify({ quantity: qty })
     });
-    if (res.status === 401) { window.location.href = '{{ route('login') }}'; }
+    // Cek 401
+    if (res.status === 401) {
+        window.location.href = '{{ route('login') }}';
+        throw new Error('Unauthorized');
+    }
+
+    const data = await res.json().catch(() => ({}));
+    
+    // Cek 400 (Error Stok)
+    if (res.status === 400) {
+        // PERBAIKAN: Jika gagal karena stok, tampilkan pesan error, dan re-render untuk reset kuantitas
+        showNotification(data.error || 'Terjadi kesalahan saat update kuantitas.', 'error');
+        await renderCart(); // Wajib re-render untuk reset tampilan
+        throw new Error(data.error); 
+    }
+    
+    // Cek 200 OK
+    if (res.ok) {
+        // Hanya notifikasi jika ada perubahan, mencegah notif ganda/spam
+        if (!data.no_change) {
+             showNotification('Jumlah produk diperbarui');
+        }
+        await renderCart(); // Wajib re-render setelah update berhasil
+    } else {
+        // Tangkap error lain (500)
+        showNotification('Gagal memperbarui produk.', 'error');
+        throw new Error('Update failed');
+    }
 }
 
 async function removeItem(itemId) {
     const ok = await showConfirmModal('Hapus item dari keranjang?');
     if (!ok) return;
+
     const res = await fetch(`{{ url('/cart/item') }}/${itemId}`, {
         method: 'DELETE',
-        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'X-Requested-With':'XMLHttpRequest'}
+        headers: {
+            'Content-Type': 'application/json', 
+            'X-CSRF-TOKEN': CSRF, 
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     });
-    if (res.status === 401) { window.location.href = '{{ route('login') }}'; return; }
-    showNotification('Produk dihapus dari keranjang');
-    await renderCart();
+
+    if (res.status === 401) {
+        window.location.href = '{{ route('login') }}'; 
+        return;
+    }
+    
+    if (res.ok) {
+        // PERBAIKAN KRUSIAL: Hanya tampilkan notifikasi dan re-render jika penghapusan sukses (res.ok)
+        showNotification('Produk dihapus dari keranjang');
+        await renderCart(); 
+    } else {
+        showNotification('Gagal menghapus produk.', 'error');
+    }
 }
 
 /* ==== Summary / checkout ==== */
@@ -273,18 +335,24 @@ function recomputeSummary() {
 }
 
 function proceedToCheckout() {
-    // Kumpulkan item terpilih: disimpan ke sessionStorage untuk dipakai halaman checkout
+    // Kumpulkan item terpilih disimpan ke sessionStorage untuk dipakai halaman checkout
     const selected = [];
     document.querySelectorAll('.item-check').forEach(check => {
         if (check.checked) {
-            const itemId = parseInt(check.dataset.itemId);       // cart_item id
-            const productId = parseInt(check.dataset.productId); // product id
+            const itemId = parseInt(check.dataset.itemId);
+            const productId = parseInt(check.dataset.productId)
             const name = check.dataset.name;
             const price = parseInt(check.dataset.price);
             const qty = parseInt(document.querySelector(`.qty-input[data-item-id="${itemId}"]`)?.value || '1');
             selected.push({ id: itemId, product_id: productId, name, price, quantity: qty });
         }
     });
+
+    if (selected.length === 0) {
+        showNotification('Pilih minimal satu produk untuk checkout!', 'error');
+        return;
+    }
+    
     sessionStorage.setItem('checkoutItems', JSON.stringify(selected));
     window.location.href = "{{ route('checkout.show') }}";
 }

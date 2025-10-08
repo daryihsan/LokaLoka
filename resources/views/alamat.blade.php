@@ -30,8 +30,11 @@
 <body>
     <div class="page-container">
         <div class="page-header">
-            <button class="btn btn-secondary" onclick="history.length>1?history.back():window.location='{{ url('/checkout') }}'">← Kembali</button>
-            <h1>Ubah Alamat Pengiriman</h1>
+            <button class="btn btn-secondary"
+                onclick="history.length > 1 ? history.back() : window.location.href = '{{ url('/checkout') }}'">
+                Kembali
+            </button>
+            <h1 class="font-roboto-slab text-3xl font-bold text-green-darker">Ubah Alamat Pengiriman</h1>
             <div></div>
         </div>
         <div class="card">
@@ -39,16 +42,22 @@
                 @csrf
                 <div class="form-group">
                     <label for="fullName">Nama Lengkap</label>
-                    <input type="text" id="fullName" name="fullName" value="{{ session('nama_penerima', 'John Doe') }}" required>
+                    {{-- PERBAIKAN: Gunakan $defaultNama --}}
+                    <input type="text" id="fullName" name="fullName" value="{{ $defaultNama }}" required>
                 </div>
+
                 <div class="form-group">
                     <label for="phoneNumber">Nomor Telepon</label>
-                    <input type="tel" id="phoneNumber" name="phoneNumber" value="{{ session('telepon_penerima', '(+62) 812-3456-7890') }}" required>
+                    {{-- PERBAIKAN: Gunakan $defaultTelepon --}}
+                    <input type="tel" id="phoneNumber" name="phoneNumber" value="{{ $defaultTelepon }}" required>
                 </div>
+
                 <div class="form-group">
                     <label for="streetAddress">Alamat Lengkap</label>
-                    <textarea id="streetAddress" name="streetAddress" rows="3" required>{{ session('alamat_penerima', 'Jl. Pahlawan No. 123, Mugassari, Kec. Semarang Sel.') }}</textarea>
+                    {{-- PERBAIKAN: Gunakan $defaultAlamat --}}
+                    <textarea id="streetAddress" name="streetAddress" rows="3" required>{{ $defaultAlamat }}</textarea>
                 </div>
+
                 
                 <div class="form-actions">
                     <div class="left-actions">

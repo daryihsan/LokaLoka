@@ -50,11 +50,15 @@ class AuthController extends Controller
             }
 
             // --- Jika Approved, LANJUT ---
+            $userStatus = $user->approved ?? ($user->approved == 1 ? 'approved' : 'pending');
+
             Session::put('logged_in', true);
             Session::put('user_id', $user->id);
             Session::put('username', $user->name);
             Session::put('user_email', $user->email);
             Session::put('user_role', $user->role);
+            Session::put('user_status', $userStatus); 
+
             
             $request->session()->regenerate();
 
@@ -109,7 +113,6 @@ class AuthController extends Controller
                 'phone_number' => $request->phone_number,
                 'password_hash' => Hash::make($request->password),
                 'role' => 'customer',
-                'status' => 'pending', 
                 'approved' => 0, // DEFAULT: Belum disetujui
             ]);
 
@@ -127,7 +130,7 @@ class AuthController extends Controller
     // Logout user
     public function logout(Request $request)
     {
-        Session::flush();
+        Session::forget(['logged_in', 'user_id', 'username', 'user_email', 'user_role', 'user_status']);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('login')->with('success', 'Anda telah logout.');
