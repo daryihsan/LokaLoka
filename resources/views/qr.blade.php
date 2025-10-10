@@ -302,4 +302,356 @@
         });
     });
 </script>
+@endpush@extends('layouts.app')
+
+@section('title', 'Pembayaran QRIS - Loka Loka')
+
+@push('head')
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .font-roboto-slab {
+        font-family: 'Roboto Slab', serif;
+    }
+
+    .font-roboto {
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .font-open-sans {
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    .bg-primary {
+        background-color: #5c6641;
+    }
+
+    .text-green-darker {
+        color: #333D29;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+
+    .qr-container svg {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .timer-ring {
+        stroke-dasharray: 251;
+        stroke-dashoffset: 251;
+        /* Asumsi 5 menit = 300 detik */
+        animation: timer-countdown 300s linear;
+    }
+
+    @keyframes timer-countdown {
+        from {
+            stroke-dashoffset: 251;
+        }
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    .product-list-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 0.5rem;
+        align-items: center;
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="max-w-4xl mx-auto px-6 py-8">
+
+    <div class="mb-4 text-sm text-gray-600">
+        Order #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {{-- Kolom Kiri: QRIS --}}
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+
+            <div class="mb-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <h2 class="font-roboto text-2xl font-bold text-green-darker mb-2">Scan QR Code</h2>
+                <p class="text-gray-600">Gunakan aplikasi e-wallet atau m-banking untuk scan QR code di bawah ini</p>
+            </div>
+
+            <div class="bg-gray-100 p-8 rounded-xl mb-6 inline-block">
+                <div class="qr-container">
+                    {{-- QR Code dari Controller (SVG) --}}
+                    {!! $qrCode !!}
+                    {{-- Payment Code hanya untuk debug/referensi --}}
+                    <p class="text-xs text-gray-500 mt-2">Kode Pembayaran: {{ $paymentCode }}</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 mb-6">
+                <div class="text-sm text-gray-600 mb-1">Total Pembayaran</div>
+                <div class="text-3xl font-bold text-green-800">
+                    Rp {{ number_format($order->total, 0, ',', '.') }}
+                </div>
+            </div>
+
+            <div id="payment-status" class="text-center">
+                <div class="pulse inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                    Menunggu Pembayaran...
+                </div>
+            </div>
+
+            <div class="mt-8 text-left">
+                <h3 class="font-semibold text-gray-800 mb-3">Batas Waktu Pembayaran</h3>
+                <div class="flex items-center justify-center mb-6">
+                    <div class="relative">
+                        {{-- Timer Circle --}}
+                        <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="36" stroke="#e5e7eb" stroke-width="8" fill="none"></circle>
+                            <circle cx="40" cy="40" r="36" stroke="#3b82f6" stroke-width="8" fill="none" class="timer-ring"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span id="timer" class="text-lg font-bold text-blue-600">05:00</span>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-3">Cara Bayar:</h3>
+                <ol class="text-sm text-gray-600 space-y-2">
+                    <li class="flex items-start gap-2">
+                        <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                        Buka aplikasi e-wallet (GoPay, OVO, Dana, ShopeePay, dll)
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                        Pilih menu "Scan QR" atau "QRIS"
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                        Arahkan kamera ke QR code di atas
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                        Konfirmasi pembayaran di aplikasi Anda
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        {{-- Kolom Kanan: Ringkasan --}}
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <h3 class="font-roboto text-xl font-bold text-green-darker mb-6">Ringkasan Pesanan ({{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }})</h3>
+
+            {{-- Daftar Produk --}}
+            <div class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+                @foreach($order->orderItems as $item)
+                    <div class="product-list-item">
+                        <img src="{{ $item->product->image_url ?? 'https://placehold.co/50x50/f3f4f6/6b7280?text=P' }}" 
+                             onerror="this.onerror=null;this.src='https://placehold.co/50x50/f3f4f6/6b7280?text=P';"
+                             alt="{{ $item->product->name ?? 'Produk Dihapus' }}" class="w-12 h-12 object-cover rounded-lg">
+                        
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-medium text-green-darker">{{ $item->product->name ?? 'Produk Dihapus' }}</h4>
+                            <p class="text-sm text-gray-600">{{ $item->qty }}x @php echo number_format($item->price, 0, ',', '.') @endphp</p>
+                            {{-- Link Lihat Deskripsi --}}
+                            <a href="{{ route('product.show', $item->product_id) }}" target="_blank" class="text-xs text-blue-500 hover:underline">Lihat Deskripsi</a>
+                        </div>
+
+                        <div class="text-right text-sm">
+                            <p class="font-bold">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Detail Biaya --}}
+            <div class="border-t pt-4 space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Subtotal Produk</span>
+                    <span>Rp {{ number_format($order->total - $order->shipping_cost, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Ongkos Kirim</span>
+                    <span>Rp {{ number_format($order->shipping_cost, 0, ',', '.') }}</span>
+                </div>
+                <div class="border-t pt-3 flex justify-between font-bold text-lg">
+                    <span>Total</span>
+                    <span class="text-green-800">Rp {{ number_format($order->total, 0, ',', '.') }}</span>
+                </div>
+            </div>
+
+            {{-- Alamat --}}
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="font-medium text-green-darker mb-2">Alamat Pengiriman</h4>
+                <div class="text-sm text-gray-600 whitespace-pre-wrap">
+                    {{-- Data alamat yang disimpan saat checkout --}}
+                    <p class="font-medium">{{ $order->user->name ?? 'N/A' }} ({{ $order->user->phone_number ?? 'N/A' }})</p>
+                    <p>{{ $order->address_text }}</p>
+                </div>
+            </div>
+
+            {{-- Aksi --}}
+            <div class="mt-6 space-y-3">
+                <button onclick="checkPaymentStatus()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition-colors">Cek Status Pembayaran</button>
+                <button onclick="simulatePayment()" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium transition-colors">Simulasi Pembayaran Berhasil</button>
+                <a href="{{ route('profile') }}" class="block w-full text-center bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-medium transition-colors">Lihat Pesanan Saya</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Success Modal --}}
+<div id="success-modal" class="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-green-darker mb-2">Pembayaran Berhasil!</h3>
+            <p class="text-gray-600 mb-6">Pesanan Anda sedang diproses dan akan segera dikirim.</p>
+            <div class="space-y-3">
+                <a href="{{ route('profile') }}" class="block w-full bg-primary hover:bg-primary-dark text-white py-3 rounded-lg font-medium transition-colors">Lihat Status Pesanan</a>
+                <a href="{{ route('homepage') }}" class="block w-full text-center text-gray-600 hover:text-gray-800">Kembali ke Beranda</a>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    let timeRemaining = 300; // 5 menit
+    let timerInterval;
+    const orderId = '{{ $order->id }}';
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            const timerEl = document.getElementById('timer');
+            if(timerEl) timerEl.textContent = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                expirePayment();
+            }
+        }, 1000);
+    }
+
+    function expirePayment() {
+        const statusDiv = document.getElementById('payment-status');
+        statusDiv.innerHTML = `
+            <div class="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Waktu Pembayaran Habis
+            </div>
+        `;
+        setTimeout(() => {
+            if (confirm('Waktu pembayaran telah habis. Buat pesanan baru?')) {
+                window.location.href = '{{ route("checkout.show") }}';
+            }
+        }, 2000);
+    }
+
+    function checkPaymentStatus() {
+        // Implementasi polling status pembayaran (simulasi)
+        const statusDiv = document.getElementById('payment-status');
+        statusDiv.innerHTML = `
+            <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Mengecek status...
+            </div>
+        `;
+        setTimeout(() => {
+            const isSuccess = Math.random() > 0.7;
+            if (isSuccess) paymentSuccess();
+            else {
+                // Kembali ke status awal
+                statusDiv.innerHTML = `
+                    <div class="pulse inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                        Menunggu Pembayaran...
+                    </div>
+                `;
+            }
+        }, 2000);
+    }
+
+    function simulatePayment() {
+        paymentSuccess();
+    }
+
+    function paymentSuccess() {
+        clearInterval(timerInterval);
+        const statusDiv = document.getElementById('payment-status');
+        statusDiv.innerHTML = `
+            <div class="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                Pembayaran Berhasil!
+            </div>
+        `;
+        setTimeout(() => {
+            document.getElementById('success-modal').classList.remove('hidden');
+            updateOrderStatus('selesai'); // Update status order di database
+        }, 1000);
+    }
+
+    function updateOrderStatus(status) {
+        // Kirim konfirmasi pembayaran ke backend untuk update status Order
+        fetch('{{ route('admin.orders.status', $order->id) }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                status: status
+            })
+        })
+        .then(r => r.json())
+        .then(data => console.log('Order status updated:', data))
+        .catch(err => console.error('Error updating order:', err));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        startTimer(); // Mulai timer
+        // Event listener untuk menutup modal sukses
+        const modal = document.getElementById('success-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) this.classList.add('hidden');
+            });
+        }
+    });
+</script>
 @endpush
