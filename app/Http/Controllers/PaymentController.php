@@ -8,16 +8,35 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PaymentController extends Controller
 {
+    /**
+     * Menampilkan halaman pembayaran QRIS
+     */
     public function showQris($orderId)
     {
-        $order = Orders::findOrFail($orderId);
+        // Ambil order beserta detail itemnya
+        $order = Orders::with('orderItems.product', 'user')->findOrFail($orderId);
 
         // Generate random unique payment code
-        $paymentCode = 'LOKALOKA_' . uniqid() . '_' . $order->id;
+        $paymentCode = 'LOKALOKA' . uniqid() . $order->id;
 
+        // PERBAIKAN: Gunakan SVG QR Code untuk kompatibilitas yang lebih baik
         $qrCode = QrCode::size(300)
-            ->generate("ID.CO.QRIS.WWW.LOKALOKA.COM.PAYMENT/{$paymentCode}");
-
+            ->format('svg')
+            ->generate("ID.CO.QRIS.WWW.LOKALOKA.COM.PAYMENT/($paymentCode)");
+            
         return view('qr', compact('order', 'qrCode', 'paymentCode'));
+    }
+
+    /**
+     * Menampilkan halaman pembayaran non-QRIS (Transfer Bank, COD)
+     */
+    public function showOtherPayment($orderId)
+    {
+        // Ambil order beserta detail itemnya
+        $order = Orders::with('orderItems.product', 'user')->findOrFail($orderId);
+            
+        // Logika untuk menampilkan instruksi transfer bank atau konfirmasi COD
+        // Kita gunakan view yang sama, tapi logic di view akan berbeda
+        return view('payment', compact('order'));
     }
 }

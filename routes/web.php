@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AlamatController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController; // Perubahan: Import CheckoutController
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 
@@ -36,23 +37,28 @@ Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('
 // KERANJANG (CART)
 Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
-Route::put('/cart/update/{itemId}', [CartController::class, 'updateCartItem'])->name('cart.update');
-Route::delete('/cart/remove/{itemId}', [CartController::class, 'removeFromCart'])->name('cart.remove');
+// Route baru untuk update kuantitas item keranjang (dipanggil via JS)
+Route::patch('/api/cart/item/{id}', [CartController::class, 'updateCartItem'])->name('cart.item.update');
+Route::delete('/api/cart/item/{id}', [CartController::class, 'removeFromCart'])->name('cart.item.remove');
+Route::get('/api/cart/items', [CartController::class, 'getCartItems'])->name('cart.items');
+
 
 // CHECKOUT & PEMBAYARAN
-Route::get('/checkout', [CartController::class, 'showCheckout'])->name('checkout.show');
-Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout.process'); 
+Route::get('/checkout', [CheckoutController::class, 'showCheckout'])->name('checkout.show');
+Route::post('/checkout', [CheckoutController::class, 'processCheckout'])->name('checkout.process'); // Perubahan: Mengarah ke CheckoutController
 Route::get('/alamat', [AlamatController::class, 'showForm'])->name('alamat.form');
 Route::post('/alamat/update', [AlamatController::class, 'update'])->name('alamat.update');
 Route::post('/alamat/delete', [AlamatController::class, 'delete'])->name('alamat.delete');
+
+// Payment routes
 Route::get('/payment/qris/{orderId}', [PaymentController::class, 'showQris'])->name('payment.qris');
-Route::get('/api/cart/items', [CartController::class, 'getCartItems'])->name('cart.items');
+Route::get('/payment/other/{orderId}', [PaymentController::class, 'showOtherPayment'])->name('payment.other'); // Route untuk transfer/COD
 
 // TENTANG KAMI
 Route::view('/about', 'about')->name('about');
 
 // =======================================================
-// ADMIN ROUTES (Cek Session & Role di Controller)
+// ADMIN ROUTES (Tidak ada perubahan di sini kecuali ada yang spesifik)
 // =======================================================
 
 Route::prefix('admin')->group(function () {
@@ -60,12 +66,12 @@ Route::prefix('admin')->group(function () {
     
     // PRODUCTS
     Route::post('/products/store', [AdminController::class, 'storeProduct'])->name('admin.products.store');
-    Route::put('/products/{id}', [AdminController::class, 'updateProduct'])->name('admin.products.update');
+    Route::put('/products/{id}/update', [AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct'])->name('admin.products.delete');
     
     // CATEGORIES
     Route::post('/categories/store', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
-    Route::put('/categories/{id}', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
+    Route::put('/categories/{id}/update', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.delete');
     
     // USERS (Approval & Edit)
