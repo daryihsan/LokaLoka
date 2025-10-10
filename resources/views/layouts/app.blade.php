@@ -40,11 +40,16 @@
     @stack('head')
 </head>
 <body class="bg-[#fffceb] text-green-darker font-open-sans">
-    @include('layouts.header')
+    @php
+        $hideHeaderFooter = request()->routeIs('login', 'register') || request()->is('login', 'register');
+    @endphp
+
+    @unless($hideHeaderFooter)
+        @include('layouts.header')
+    @endunless
 
     @if (session('success'))
     <div class="container-page">
-        {{-- PERBAIKAN: Memastikan session('success') tampil dengan benar --}}
         <div class="alert alert-success">{{ session('success') }}</div>
     </div>
     @endif
@@ -52,7 +57,6 @@
     @if ($errors->any())
     <div class="container-page">
         <div class="alert alert-error">
-            {{-- PERBAIKAN: Menampilkan semua error dari validator/redirect dengan perulangan --}}
             @foreach ($errors->all() as $error)
                 <div>{{ $error }}</div>
             @endforeach
@@ -64,7 +68,9 @@
         @yield('content')
     </main>
 
-    @include('layouts.footer')
+    @unless($hideHeaderFooter)
+        @include('layouts.footer')
+    @endunless
 
     @stack('modals')
 

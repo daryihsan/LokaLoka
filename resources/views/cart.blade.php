@@ -23,6 +23,29 @@
     .modal-btn-confirm:hover { background: #5A6B2B; }
     .modal-btn-cancel { background: #C8A951; color: white; }
     .modal-btn-cancel:hover { background: #B8993D; }
+
+    .qty-input {
+        appearance: textfield;
+        -moz-appearance: textfield;
+    }
+
+    .qty-input::-webkit-outer-spin-button,
+    .qty-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .cart-item-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .cart-item-row > div {
+            width: 100%;
+        }
+    }
+
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 </style>
 @endpush
@@ -45,7 +68,7 @@
         <div class="lg:col-span-2 card">
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <input type="checkbox" id="select-all" class="w-5 h-5">
+                    <input type="checkbox" id="select-all" class="w-5 h-5 accent-primary" checked>
                     <label for="select-all" class="text-sm text-gray-700">Pilih semua</label>
                 </div>
                 <div class="text-sm text-gray-600">Total item: <span id="total-items">0</span></div>
@@ -89,16 +112,37 @@
 <!-- Custom Modal: konfirmasi umum -->
 <div id="confirmModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-logo">L</div>
-            <h3 class="modal-title">Loka Loka</h3>
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="font-roboto-slab text-xl font-bold text-green-darker">Loka Loka</h3>
+            <button onclick="closeModal('confirmModal')" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
         </div>
-        <div class="modal-body">
-            <p class="modal-message" id="modalMessage">Konfirmasi</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-confirm" id="modalConfirm">OK</button>
-                <button class="modal-btn modal-btn-cancel" id="modalCancel">Batal</button>
+        <div class="p-6 text-center">
+            <p class="text-lg text-gray-700 mb-6" id="modalMessage">Konfirmasi</p>
+            <div class="flex justify-center gap-4">
+                <button class="btn bg-red-600 hover:bg-red-700 text-white" id="modalCancel">Batal</button>
+                <button class="btn btn-primary" id="modalConfirm">OK</button>
             </div>
+        </div>
+    </div>
+</div>
+
+{{-- Custom Modal: deskripsi produk --}}
+<div id="productDetailModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 id="product-detail-name" class="font-roboto-slab text-xl font-bold text-green-darker">Detail Produk</h3>
+            <button onclick="closeModal('productDetailModal')" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-4 space-y-3">
+            <img id="product-detail-image" src="" alt="Gambar Produk" class="w-full h-48 object-cover rounded-lg mb-3">
+            <p id="product-detail-category" class="text-sm text-gray-500"></p>
+            <p id="product-detail-price" class="text-xl font-bold text-red-600"></p>
+            <h4 class="font-semibold text-green-darker border-t pt-3 mt-3">Deskripsi Produk</h4>
+            <p id="product-detail-description" class="text-gray-700 whitespace-pre-wrap text-sm"></p>
         </div>
     </div>
 </div>
@@ -106,258 +150,362 @@
 
 @push('scripts')
 <script>
-/* ==== Utilities ==== */
-const CSRF = '{{ csrf_token() }}';
-function rp(n){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n).replace('Rp','Rp'); }
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.style.display = 'block';
-    notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
-    setTimeout(() => { notification.style.display = 'none'; }, 2500);
-}
-function showConfirmModal(message) {
-    return new Promise((resolve) => {
-        const modal = document.getElementById('confirmModal');
-        const msgEl = document.getElementById('modalMessage');
-        const btnOk = document.getElementById('modalConfirm');
-        const btnCancel = document.getElementById('modalCancel');
-
-        msgEl.textContent = message || 'Konfirmasi';
-        modal.classList.add('show');
-
-        const cleanup = () => {
-            btnOk.removeEventListener('click', onOk);
-            btnCancel.removeEventListener('click', onCancel);
-            modal.removeEventListener('click', onBackdrop);
-        };
-        const onOk = () => { modal.classList.remove('show'); cleanup(); resolve(true); };
-        const onCancel = () => { modal.classList.remove('show'); cleanup(); resolve(false); };
-        const onBackdrop = (e) => { if (e.target === modal) onCancel(); };
-
-        btnOk.addEventListener('click', onOk);
-        btnCancel.addEventListener('click', onCancel);
-        modal.addEventListener('click', onBackdrop);
-        document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ onCancel(); document.removeEventListener('keydown', esc);} });
-    });
-}
-
-/* ==== Data fetching ==== */
-async function fetchCart() {
-    const res = await fetch('{{ route('cart.items') }}', {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    });
-
-    if (res.status === 401) {
-        window.location.href = '{{ route('login') }}';
-        return { items: [], count: 0, total: 0 };
+    /* ==== Utilities ==== */
+    const CSRF = '{{ csrf_token() }}';
+    function rp(n){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n).replace('Rp','Rp'); }
+    function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.display = 'block';
+        notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
+        setTimeout(() => { notification.style.display = 'none'; }, 2500);
     }
-    return res.json();
-}
+    function showConfirmModal(message) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('confirmModal');
+            const msgEl = document.getElementById('modalMessage');
+            const btnOk = document.getElementById('modalConfirm');
+            const btnCancel = document.getElementById('modalCancel');
 
-/* ==== Rendering & events ==== */
-async function renderCart() {
-    const list = document.getElementById('cart-items-list');
-    const empty = document.getElementById('empty-state');
-    const data = await fetchCart();
-    
-    // Total items ditampilkan di header list
-    document.getElementById('total-items').textContent = data.count ?? 0;
+            msgEl.textContent = message || 'Konfirmasi';
+            modal.classList.add('show');
 
-    if (!data.items || data.items.length === 0) {
-        list.innerHTML = '';
-        empty.classList.remove('hidden');
-        updateSummary(0);
-        document.getElementById('checkout-btn').disabled = true;
-        setSelectAllState();
-        return;
-    }
+            const cleanup = () => {
+                btnOk.removeEventListener('click', onOk);
+                btnCancel.removeEventListener('click', onCancel);
+                modal.removeEventListener('click', onBackdrop);
+            };
+            const onOk = () => { modal.classList.remove('show'); cleanup(); resolve(true); };
+            const onCancel = () => { modal.classList.remove('show'); cleanup(); resolve(false); };
+            const onBackdrop = (e) => { if (e.target === modal) onCancel(); };
 
-    empty.classList.add('hidden');
-
-    // PERBAIKAN: Menggunakan map dan join untuk render HTML
-    list.innerHTML = data.items.map(i => `
-        <div class="flex items-center gap-4 border border-gray-200 rounded-lg p-4">
-            <input type="checkbox" class="item-check w-5 h-5" data-item-id="${i.id}"
-                data-price="${i.price}" data-name="${i.name}" data-product-id="${i.product_id}" checked>
-            <img src="${i.image_url || 'https://placehold.co/80x80?text=IMG'}"
-                alt="${i.name}" class="w-16 h-16 object-cover rounded">
-            <div class="flex-1">
-                <div class="font-semibold">${i.name}</div>
-                <div class="text-sm text-gray-500">${rp(i.price)}</div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id},
-                    -1)">-</button>
-                <input type="number" class="w-16 text-center border rounded p-1 qty-input"
-                    data-item-id="${i.id}" value="${i.quantity}" min="1">
-                <button class="btn btn-secondary px-2 py-1" onclick="changeQty(${i.id},
-                    1)">+</button>
-            </div>
-            <div class="w-24 text-right font-semibold">${rp(i.price * i.quantity)}</div>
-            <button class="btn btn-secondary" onclick="removeItem(${i.id})">Hapus</button>
-        </div>
-    `).join('');
-
-    bindEvents();
-    recomputeSummary();
-    setSelectAllState();
-}
-
-function bindEvents() {
-    document.querySelectorAll('.qty-input').forEach(inp => {
-        inp.addEventListener('change', async (e) => {
-            const itemId = e.target.dataset.itemId;
-            const qty = Math.max(1, parseInt(e.target.value || '1'));
-            await updateQty(itemId, qty);
-            showNotification('Jumlah produk diperbarui');
-            await renderCart();
+            btnOk.addEventListener('click', onOk);
+            btnCancel.addEventListener('click', onCancel);
+            modal.addEventListener('click', onBackdrop);
+            document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ onCancel(); document.removeEventListener('keydown', esc);} });
         });
-    });
+    }
 
-    const selectAll = document.getElementById('select-all');
-    selectAll.onchange = (e) => {
-        document.querySelectorAll('.item-check').forEach(c => c.checked = e.target.checked);
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+
+    /* ==== Data fetching ==== */
+    async function fetchCart() {
+        const res = await fetch('{{ route('cart.items') }}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (res.status === 401) {
+            window.location.href = '{{ route('login') }}';
+            return { items: [], count: 0, total: 0 };
+        }
+        return res.json();
+    }
+
+    /* ==== Rendering & events ==== */
+    async function renderCart() {
+        const list = document.getElementById('cart-items-list');
+        const empty = document.getElementById('empty-state');
+        const data = await fetchCart();
+        
+        // Total items ditampilkan di header list
+        document.getElementById('total-items').textContent = data.count ?? 0;
+
+        if (!data.items || data.items.length === 0) {
+            list.innerHTML = '';
+            empty.classList.remove('hidden');
+            updateSummary(0);
+            document.getElementById('checkout-btn').disabled = true;
+            setSelectAllState();
+            return;
+        }
+
+        empty.classList.add('hidden');
+
+        // PERBAIKAN: Menggunakan map dan join untuk render HTML
+        list.innerHTML = data.items.map(i => `
+            <div class="cart-item-row flex items-center gap-4 border border-gray-200 rounded-xl p-4 transition duration-200 hover:shadow-md">
+                <input type="checkbox" class="item-check w-5 h-5 accent-primary flex-shrink-0"
+                    data-item-id="${i.id}"
+                    data-price="${i.price}" data-name="${i.name}"
+                    data-product-id="${i.product_id}" checked>
+                
+                <img src="${i.image_url || 'https://placehold.co/80x80/f3f4f6/6b7280?text=IMG'}"
+                    onerror="this.onerror=null;this.src='https://placehold.co/80x80/f3f4f6/6b7280?text=IMG';"
+                    alt="${i.name}" class="w-20 h-20 object-cover rounded-lg flex-shrink-0">
+                
+                <div class="flex-1 min-w-0 space-y-1">
+                    <div class="font-semibold text-green-darker">${i.name}</div>
+                    <div class="text-sm text-red-600 font-medium">${rp(i.price)}</div>
+                    <button class="text-xs text-blue-500 hover:text-blue-700 underline" onclick="showProductDetails(${i.id}, '${i.name}', '${i.image_url}', '${rp(i.price)}', '${i.description}', '${i.category}')">Lihat Detail</button>
+                </div>
+                
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <button class="btn btn-secondary px-2 py-1 h-8 w-8" onclick="changeQty(${i.id}, -1)">-</button>
+                    <input type="number" class="w-12 text-center border rounded p-1 qty-input text-sm"
+                        data-item-id="${i.id}" value="${i.quantity}" min="1" max="${i.stock}" onchange="updateQtyDirect(${i.id}, this.value)">
+                    <button class="btn btn-secondary px-2 py-1 h-8 w-8" onclick="changeQty(${i.id}, 1)">+</button>
+                </div>
+                
+                <div class="w-24 text-right font-semibold text-sm flex-shrink-0" data-subtotal-id="${i.id}">${rp(i.price * i.quantity)}</div>
+                
+                <button class="text-red-500 hover:text-red-700 text-sm flex-shrink-0"
+                    onclick="removeItem(${i.id})">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </div>
+        `).join('');
+
+        bindEvents();
         recomputeSummary();
         setSelectAllState();
-    };
-
-    document.querySelectorAll('.item-check').forEach(c => c.addEventListener('change', () => {
-        recomputeSummary();
-        setSelectAllState();
-    }));
-}
-
-/* Tri-state select-all */
-function setSelectAllState() {
-    const selectAll = document.getElementById('select-all');
-    const checks = Array.from(document.querySelectorAll('.item-check'));
-    if (checks.length === 0) { selectAll.checked = false; selectAll.indeterminate = false; return; }
-    const checkedCount = checks.filter(c => c.checked).length;
-    selectAll.checked = checkedCount === checks.length;
-    selectAll.indeterminate = checkedCount > 0 && checkedCount < checks.length;
-}
-
-/* ==== Item mutations ==== */
-async function changeQty(itemId, delta) {
-    const row = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
-    const newQ = Math.max(1, parseInt(row?.value || '1') + delta);
-    await updateQty(itemId, newQ);
-    showNotification('Jumlah produk diperbarui');
-    await renderCart();
-}
-
-async function updateQty(itemId, qty) {
-    const res = await fetch(`{{ url('/cart/item') }}/${itemId}`, {
-        method: 'PATCH',
-        headers: {'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'X-Requested-With':'XMLHttpRequest'},
-        body: JSON.stringify({ quantity: qty })
-    });
-    // Cek 401
-    if (res.status === 401) {
-        window.location.href = '{{ route('login') }}';
-        throw new Error('Unauthorized');
     }
 
-    const data = await res.json().catch(() => ({}));
-    
-    // Cek 400 (Error Stok)
-    if (res.status === 400) {
-        // PERBAIKAN: Jika gagal karena stok, tampilkan pesan error, dan re-render untuk reset kuantitas
-        showNotification(data.error || 'Terjadi kesalahan saat update kuantitas.', 'error');
-        await renderCart(); // Wajib re-render untuk reset tampilan
-        throw new Error(data.error); 
-    }
-    
-    // Cek 200 OK
-    if (res.ok) {
-        // Hanya notifikasi jika ada perubahan, mencegah notif ganda/spam
-        if (!data.no_change) {
-             showNotification('Jumlah produk diperbarui');
+    function bindEvents() {
+        const selectAll = document.getElementById('select-all');
+        if (selectAll) {
+            selectAll.onchange = (e) => {
+                document.querySelectorAll('.item-check').forEach(c => c.checked = e.target.checked);
+                recomputeSummary();
+                setSelectAllState();
+            };
         }
-        await renderCart(); // Wajib re-render setelah update berhasil
-    } else {
-        // Tangkap error lain (500)
-        showNotification('Gagal memperbarui produk.', 'error');
-        throw new Error('Update failed');
+
+        document.querySelectorAll(".item-check").forEach(c => {
+            c.addEventListener('change', () => {
+                recomputeSummary();
+                setSelectAllState();
+            });
+        });
     }
-}
 
-async function removeItem(itemId) {
-    const ok = await showConfirmModal('Hapus item dari keranjang?');
-    if (!ok) return;
+    function setSelectAllState() {
+        const selectAll = document.getElementById('select-all');
+        const checks = Array.from(document.querySelectorAll('.item-check'));
 
-    const res = await fetch(`{{ url('/cart/item') }}/${itemId}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json', 
-            'X-CSRF-TOKEN': CSRF, 
-            'X-Requested-With': 'XMLHttpRequest'
+        if (checks.length === 0) {
+            if (selectAll) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            }
+            return;
         }
-    });
 
-    if (res.status === 401) {
-        window.location.href = '{{ route('login') }}'; 
-        return;
-    }
-    
-    if (res.ok) {
-        // PERBAIKAN KRUSIAL: Hanya tampilkan notifikasi dan re-render jika penghapusan sukses (res.ok)
-        showNotification('Produk dihapus dari keranjang');
-        await renderCart(); 
-    } else {
-        showNotification('Gagal menghapus produk.', 'error');
-    }
-}
-
-/* ==== Summary / checkout ==== */
-function updateSummary(subtotal) {
-    const shipping = subtotal > 0 ? 15000 : 0;
-    document.getElementById('sum-subtotal').textContent = rp(subtotal);
-    document.getElementById('sum-shipping').textContent = rp(shipping);
-    document.getElementById('sum-total').textContent = rp(subtotal + shipping);
-}
-
-function recomputeSummary() {
-    let subtotal = 0;
-    document.querySelectorAll('.item-check').forEach(check => {
-        if (check.checked) {
-            const price = parseInt(check.dataset.price);
-            const itemId = check.dataset.itemId;
-            const qty = parseInt(document.querySelector(`.qty-input[data-item-id="${itemId}"]`)?.value || '1');
-            subtotal += price * qty;
+        const checkedCount = checks.filter(c => c.checked).length;
+        if (selectAll) {
+            selectAll.checked = checkedCount === checks.length;
+            selectAll.indeterminate = checkedCount > 0 && checkedCount < checks.length;
         }
-    });
-    updateSummary(subtotal);
-    document.getElementById('checkout-btn').disabled = subtotal === 0;
-}
+    }
 
-function proceedToCheckout() {
-    // Kumpulkan item terpilih disimpan ke sessionStorage untuk dipakai halaman checkout
-    const selected = [];
-    document.querySelectorAll('.item-check').forEach(check => {
-        if (check.checked) {
+    function showProductDetails(id, name, image_url, price, description, category) {
+        document.getElementById('product-detail-name').textContent = name;
+        document.getElementById('product-detail-image').src = image_url || 'https://placehold.co/500x300/f3f4f6/6b7280?text=Produk';
+        document.getElementById('product-detail-price').textContent = price;
+        document.getElementById('product-detail-category').textContent = `Kategori: ${category}`;
+        document.getElementById('product-detail-description').textContent = description || 'Tidak ada deskripsi tersedia.';
+        openModal('productDetailModal');
+    }
+
+    /* ==== Item mutations ==== */
+    async function changeQty(itemId, delta) {
+        const row = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
+        if (!row) return;
+
+        // Cek max stock
+        const maxStock = parseInt(row.max || 999);
+        
+        let newQ = parseInt(row.value || '1') + delta;
+        newQ = Math.max(1, newQ);
+        newQ = Math.min(maxStock, newQ);
+
+        // Langsung update nilai input sementara menunggu server
+        if (parseInt(row.value) !== newQ) {
+            row.value = newQ;
+            // Update UI subtotal cepat (optimistic update)
+            const itemCheck = document.querySelector(`.item-check[data-item-id="${itemId}"]`);
+            if (itemCheck) {
+                const price = parseFloat(itemCheck.dataset.price);
+                document.querySelector(`[data-subtotal-id="${itemId}"]`).textContent = rp(price * newQ);
+            }
+            recomputeSummary(); 
+        }
+
+        await updateQtyOnServer(itemId, newQ);
+        await renderCart(); // Re-render setelah update server
+    }
+
+    async function updateQtyDirect(itemId, newQuantity) {
+        const row = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
+        if (!row) return;
+
+        let newQ = parseInt(newQuantity || '1');
+        newQ = Math.max(1, newQ);
+        
+        // Cek max stock
+        const maxStock = parseInt(row.max || 999);
+        newQ = Math.min(maxStock, newQ);
+        
+        row.value = newQ; // Set nilai yang sudah divalidasi
+        
+        // Update UI subtotal cepat (optimistic update)
+        const itemCheck = document.querySelector(`.item-check[data-item-id="${itemId}"]`);
+        if (itemCheck) {
+            const price = parseFloat(itemCheck.dataset.price);
+            document.querySelector(`[data-subtotal-id="${itemId}"]`).textContent = rp(price * newQ);
+        }
+        recomputeSummary(); 
+
+        await updateQtyOnServer(itemId, newQ);
+        await renderCart(); // Re-render setelah update server
+    }
+
+
+    async function updateQtyOnServer(itemId, qty) {
+        const res = await fetch(`{{ url('/api/cart/item') }}/${itemId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': CSRF,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                quantity: qty
+            })
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 401) {
+            window.location.href = '{{ route('login') }}';
+            throw new Error('Unauthorized');
+        }
+
+        if (res.status === 400) {
+            // Error Stok
+            showNotification(data.error || 'Terjadi kesalahan saat update kuantitas.', 'error');
+            return; // Jangan throw error, biarkan renderCart() berikutnya memperbaiki tampilan
+        }
+
+        if (res.ok) {
+            if (!data.no_change) {
+                showNotification('Jumlah produk diperbarui');
+            }
+            return;
+        } else {
+            showNotification('Gagal memperbarui produk.', 'error');
+            throw new Error('Update failed');
+        }
+    }
+
+    async function removeItem(itemId) {
+        const ok = await showConfirmModal('Yakin ingin menghapus item dari keranjang?');
+        if (!ok) return;
+
+        const res = await fetch(`{{ url('/api/cart/item') }}/${itemId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': CSRF,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (res.status === 401) {
+            window.location.href = '{{ route('login') }}';
+            return;
+        }
+
+        if (res.ok) {
+            showNotification('Produk dihapus dari keranjang');
+            await renderCart();
+        } else {
+            showNotification('Gagal menghapus produk.', 'error');
+        }
+    }
+
+    /* ==== Summary / checkout ==== */
+    function updateSummary(subtotal) {
+        const shipping = subtotal > 0 ? 15000 : 0;
+        document.getElementById('sum-subtotal').textContent = rp(subtotal);
+        document.getElementById('sum-shipping').textContent = rp(shipping);
+        document.getElementById('sum-total').textContent = rp(subtotal + shipping);
+    }
+
+    function recomputeSummary() {
+        let subtotal = 0;
+        const selectedItems = [];
+
+        document.querySelectorAll('.item-check').forEach(check => {
             const itemId = parseInt(check.dataset.itemId);
-            const productId = parseInt(check.dataset.productId)
-            const name = check.dataset.name;
-            const price = parseInt(check.dataset.price);
-            const qty = parseInt(document.querySelector(`.qty-input[data-item-id="${itemId}"]`)?.value || '1');
-            selected.push({ id: itemId, product_id: productId, name, price, quantity: qty });
-        }
-    });
+            const qtyInput = document.querySelector(`.qty-input[data-item-id="${itemId}"]`);
+            
+            if (check.checked && qtyInput) {
+                const price = parseFloat(check.dataset.price);
+                const productId = parseInt(check.dataset.productId);
+                const name = check.dataset.name;
+                const qty = parseInt(qtyInput.value || '1');
 
-    if (selected.length === 0) {
-        showNotification('Pilih minimal satu produk untuk checkout!', 'error');
-        return;
+                subtotal += price * qty;
+
+                // Kumpulkan data terpilih
+                selectedItems.push({
+                    id: itemId, // cart item id
+                    product_id: productId,
+                    name: name,
+                    price: price,
+                    quantity: qty
+                });
+            }
+        });
+
+        updateSummary(subtotal);
+        document.getElementById('checkout-btn').disabled = subtotal === 0;
+        
+        // Simpan item terpilih ke sessionStorage untuk dipakai di checkout
+        sessionStorage.setItem('checkoutItems', JSON.stringify(selectedItems));
     }
-    
-    sessionStorage.setItem('checkoutItems', JSON.stringify(selected));
-    window.location.href = "{{ route('checkout.show') }}";
-}
 
-/* ==== Init ==== */
-document.addEventListener('DOMContentLoaded', renderCart);
+    function proceedToCheckout() {
+        const selected = JSON.parse(sessionStorage.getItem('checkoutItems') || '[]');
+        
+        if (selected.length === 0) {
+            showNotification('Pilih minimal satu produk untuk checkout!', 'error');
+            return;
+        }
+
+        window.location.href = '{{ route('checkout.show') }}';
+    }
+
+    /* ==== Init ==== */
+    document.addEventListener('DOMContentLoaded', renderCart);
 </script>
+
+{{-- Modal component (hidden by default, used by showConfirmModal) --}}
+@section('modals')
+<div id="confirmModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-content">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h3 class="font-roboto-slab text-xl font-bold text-green-darker">Loka Loka</h3>
+            <button onclick="closeModal('confirmModal')" class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6 text-center">
+            <p class="text-lg text-gray-700 mb-6" id="modalMessage">Konfirmasi</p>
+            <div class="flex justify-center gap-4">
+                <button class="btn bg-red-600 hover:bg-red-700 text-white" id="modalCancel">Batal</button>
+                <button class="btn btn-primary" id="modalConfirm">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
 @endpush

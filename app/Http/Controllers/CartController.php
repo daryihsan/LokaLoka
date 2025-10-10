@@ -138,6 +138,7 @@ class CartController extends Controller
                 'subtotal' => (float)$item->product->price * $item->qty,
                 'image_url' => $item->product->image_url,
                 'stock' => $item->product->stock,
+                'description' => $item->product->description, // Tambah deskripsi untuk modal/view deskripsi
                 'category' => $item->product->category->name ?? null
             ];
         });
@@ -183,9 +184,11 @@ class CartController extends Controller
         
         // Periksa apakah kuantitas benar-benar berubah sebelum update
         if ($cartItem->qty === $quantity) {
-            // Jika kuantitas sama, anggap sukses tapi kirim pesan berbeda jika perlu.
-            // Untuk tujuan ini, kita return 200 OK agar frontend tidak menampilkan error.
-            return response()->json(['success' => 'Kuantitas tidak berubah.', 'no_change' => true], 200);
+             return response()->json([
+                'success' => 'Kuantitas tidak berubah.',
+                'no_change' => true,
+                'subtotal' => (float)$cartItem->product->price * $quantity, // tetap kirim subtotal saat ini
+             ], 200);
         }
         
         // Update kolom 'qty'
@@ -201,6 +204,7 @@ class CartController extends Controller
             'success' => 'Kuantitas berhasil diupdate.',
             'subtotal' => (float)$cartItem->product->price * $quantity,
             'new_total' => $newTotal,
+            'new_item_qty' => $quantity,
             'no_change' => false
         ]);
     }
@@ -225,106 +229,5 @@ class CartController extends Controller
         }
         
         return response()->json(['error' => 'Item tidak ditemukan'], 404);
-    }
-    
-    // Show checkout page
-    public function showCheckout()
-    {
-        if (!$this->checkAuth()) {
-            return redirect()->route('login')->withErrors(['access' => 'Silakan login terlebih dahulu.']);
-        }
-        
-        // ... (sisanya tetap sama)
-        $userId = Session::get('user_id');
-        $user = Users::find($userId);
-        $cart = Carts::with(['cartItems.product'])->where('user_id', $userId)->first();
-
-        if (!$cart || $cart->cartItems->isEmpty()) {
-            return redirect()->route('cart.show')->with('error', 'Keranjang Anda kosong atau belum memilih produk.');
-        }
-
-        $cartItems = $cart->cartItems;
-        
-        return view('checkout', compact('user', 'cartItems'));
-    }
-
-    // Process checkout
-    public function checkout(Request $request)
-    {
-        if (!$this->checkAuth()) {
-            return redirect()->route('login')->withErrors(['access' => 'Unauthorized access.']);
-        }
-
-        // ... (sisanya tetap sama)
-        $validated = $request->validate([
-            'cart_data' => 'required|json', // Data item yang dipilih untuk checkout
-            'payment_method' => 'required|string',
-            'shipping_cost' => 'required|numeric|min:0',
-            'address_text' => 'required|string',
-        ]);
-        
-        $selectedItemsData = json_decode($validated['cart_data'], true);
-        
-        if (empty($selectedItemsData)) {
-            return back()->with('error', 'Tidak ada produk yang dipilih untuk checkout.');
-        }
-        
-        $userId = Session::get('user_id');
-        $cart = $this->getUserCart();
-        $total = 0;
-        
-        // Cek stok dan hitung total
-        $productStockMap = Products::whereIn('id', collect($selectedItemsData)->pluck('product_id'))->pluck('stock', 'id');
-        
-        foreach ($selectedItemsData as $item) {
-            if ($item['quantity'] > $productStockMap[$item['product_id']] ?? 0) {
-                return back()->with('error', 'Stok produk ' . $item['name'] . ' tidak mencukupi.')->withInput();
-            }
-            $total += $item['price'] * $item['quantity'];
-        }
-        
-        $finalTotal = $total + $validated['shipping_cost'];
-
-        $order = DB::transaction(function () use ($userId, $finalTotal, $validated, $selectedItemsData, $cart) {
-            // 1. Buat Order
-            $newOrder = Orders::create([
-                'user_id' => $userId,
-                'total' => $finalTotal,
-                'status' => 'diproses',
-                'payment_method' => $validated['payment_method'],
-                'shipping_cost' => $validated['shipping_cost'],
-                'address_text' => $validated['address_text'],
-            ]);
-
-            // 2. Isi Order Items, Update Stock, dan Hapus dari Cart
-            foreach ($selectedItemsData as $item) {
-                // Tambahkan item ke order
-                $newOrder->orderItems()->create([
-                    'product_id' => $item['product_id'],
-                    'qty' => $item['quantity'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['price'] * $item['quantity']
-                ]);
-
-                // Update stock
-                Products::where('id', $item['product_id'])->decrement('stock', $item['quantity']);
-
-                // Hapus item dari keranjang (menggunakan cart_item_id)
-                CartItems::where('id', $item['id'])->delete();
-            }
-            
-            // Cek apakah keranjang kosong setelah penghapusan
-            if (CartItems::where('cart_id', $cart->id)->count() == 0) {
-                 $cart->delete(); // Hapus keranjang jika sudah kosong
-            }
-
-            return $newOrder;
-        });
-
-        if ($order->payment_method === 'qris') {
-            return redirect()->route('payment.qris', $order->id);
-        }
-        
-        return redirect()->route('orders')->with('success', 'Pesanan berhasil dibuat! Segera lakukan pembayaran.');
     }
 }
