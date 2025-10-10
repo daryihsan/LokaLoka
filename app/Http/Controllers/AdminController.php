@@ -60,6 +60,8 @@ class AdminController extends Controller
         ->orderBy('month_year', 'asc')
         ->get();
 
+        $pendingUsers = Users::where('approved', '0')->latest()->take(5)->get(); // PERBAIKAN: Ambil data pending
+
         // *************** 4. KIRIM DATA KE VIEW ***************
         return view('admin.dashboard', compact(
             'section',
@@ -71,6 +73,7 @@ class AdminController extends Controller
             'recentOrders',
             'salesByCategory',
             'newUsersMonthly',
+            'pendingUsers'
         ));
     }
 
@@ -198,14 +201,13 @@ class AdminController extends Controller
         
         // PERBAIKAN: Menggunakan update dan mengembalikan hasil boolean dari update
         $updated = $user->update([
-            'status' => 'approved', 
-            'approved' => 1, // SET approved = 1 (TRUE)
+            'approved' => 1, 
             'role' => 'customer'
         ]); 
 
         if ($updated) {
             return Redirect::route('admin.dashboard', ['section' => 'users'])
-                           ->with('success', "Pengguna berhasil disetujui (Approved) sebagai Customer. Kolom approved = 1.");
+                           ->with('success', "Pengguna berhasil disetujui (Approved) sebagai Customer.");
         } else {
             return Redirect::route('admin.dashboard', ['section' => 'users'])
                            ->with('error', "Gagal memperbarui database. Pastikan kolom 'status' dan 'approved' ada di \$fillable Model Users.");

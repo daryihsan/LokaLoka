@@ -30,36 +30,69 @@ class CartController extends Controller
     // Add item to cart
     public function addToCart(Request $request)
     {
-        // Periksa Auth. Jika gagal, kirim error 401 ke AJAX.
+        // 1. Otorisasi
         if (!$this->checkAuth()) {
-            // Mengembalikan 401: UNAUTHORIZED, yang akan ditangkap JavaScript
-            return response()->json(['error' => 'Sesi login tidak terdeteksi. Silakan login kembali.'], 401); 
-        }
-        
-        $product = Products::findOrFail($request->product_id);
-
-        if ($product->stock < $request->quantity) {
-            return response()->json(['error' => 'Stok tidak mencukupi'], 400);
+            return response()->json(['error' => 'Sesi login tidak terdeteksi. Silakan login kembali.'], 401);
         }
 
-        $cart = $this->getUserCart();
-
-        // Menggunakan DB::raw untuk operasi penambahan
-        CartItems::updateOrCreate(
-            [
-                'cart_id' => $cart->id,
-                'product_id' => $request->product_id
-            ],
-            [
-                'qty' => DB::raw('qty + ' . (int)$request->quantity)
-            ]
-        );
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Produk berhasil ditambahkan ke keranjang!',
-            'count' => CartItems::where('cart_id', $cart->id)->sum('qty')
+        // 2. Validasi Input
+        // Gunakan exists untuk is_active=1
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id,is_active,1', 
+            'quantity' => 'required|integer|min:1',
         ]);
+        
+        $product = Products::findOrFail($validated['product_id']); 
+        $cart = $this->getUserCart();
+        $quantityToAdd = (int)$validated['quantity'];
+
+        // 3. Logika Penambahan/Pembaruan dengan Cek Stok
+        try {
+            DB::transaction(function () use ($product, $cart, $quantityToAdd) {
+                
+                $existingItem = CartItems::where('cart_id', $cart->id)
+                    ->where('product_id', $product->id)
+                    ->first();
+                    
+                $currentQty = $existingItem ? $existingItem->qty : 0;
+                $newTotalQty = $currentQty + $quantityToAdd;
+                
+                // Cek Stok KRUSIAL: Menggunakan kolom 'stock' di tabel products
+                if ($newTotalQty > $product->stock) {
+                    // Gunakan Exception untuk memaksa rollback transaksi dan menangkap pesan error yang spesifik.
+                    throw new \Exception('Stok tidak mencukupi. Tersedia: ' . $product->stock . ', Diminta: ' . $newTotalQty);
+                }
+
+                if ($existingItem) {
+                    // Update item yang sudah ada
+                    $existingItem->update(['qty' => $newTotalQty]);
+                } else {
+                    // Buat item baru
+                    CartItems::create([
+                        'cart_id' => $cart->id,
+                        'product_id' => $product->id,
+                        'qty' => $newTotalQty 
+                    ]);
+                }
+            });
+
+            // 4. Respon Sukses
+            $cartItemCount = CartItems::where('cart_id', $cart->id)->sum('qty');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Produk berhasil ditambahkan ke keranjang!',
+                'count' => $cartItemCount
+            ]);
+
+        } catch (\Exception $e) {
+            // Menangkap pesan exception yang spesifik (misal: "Stok tidak mencukupi...")
+            // Menggunakan status 400 (Bad Request) agar frontend bisa menampilkan pesan spesifik.
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 400); 
+        }
     }
 
     // Show cart view
@@ -142,22 +175,33 @@ class CartController extends Controller
             return response()->json(['error' => 'Item tidak ditemukan'], 404);
         }
 
-        $quantity = $request->quantity;
+        $quantity = (int)$request->quantity;
+        // Cek Stok (menggunakan products.stock)
         if ($cartItem->product->stock < $quantity) {
-            return response()->json(['error' => 'Stok tidak mencukupi'], 400);
+            return response()->json(['error' => 'Stok tidak mencukupi, stok tersedia: ' . $cartItem->product->stock], 400);
         }
-
+        
+        // Periksa apakah kuantitas benar-benar berubah sebelum update
+        if ($cartItem->qty === $quantity) {
+            // Jika kuantitas sama, anggap sukses tapi kirim pesan berbeda jika perlu.
+            // Untuk tujuan ini, kita return 200 OK agar frontend tidak menampilkan error.
+            return response()->json(['success' => 'Kuantitas tidak berubah.', 'no_change' => true], 200);
+        }
+        
+        // Update kolom 'qty'
         $cartItem->update(['qty' => $quantity]);
         
         // Hitung total keranjang yang baru
         $newTotal = CartItems::where('cart_id', $cart->id)
-                            ->join('products', 'cart_items.product_id', '=', 'products.id')
-                            ->sum(DB::raw('cart_items.qty * products.price'));
+            ->join('products', 'cart_items.product_id', '=', 'products.id')
+            // Menghitung SUM(cart_items.qty * products.price)
+            ->sum(DB::raw('cart_items.qty * products.price')); 
 
         return response()->json([
             'success' => 'Kuantitas berhasil diupdate.',
             'subtotal' => (float)$cartItem->product->price * $quantity,
-            'new_total' => $newTotal
+            'new_total' => $newTotal,
+            'no_change' => false
         ]);
     }
 
@@ -169,11 +213,17 @@ class CartController extends Controller
         }
         
         $cart = $this->getUserCart();
-        $deleted = CartItems::where('cart_id', $cart->id)->where('id', $id)->delete();
-
+        
+        // Melakukan penghapusan dan menyimpan jumlah baris yang terhapus
+        $deleted = CartItems::where('cart_id', $cart->id)
+                    ->where('id', $id)
+                    ->delete();
+        
+        // Jika $deleted > 0, maka berhasil
         if ($deleted) {
             return response()->json(['success' => true]);
         }
+        
         return response()->json(['error' => 'Item tidak ditemukan'], 404);
     }
     
@@ -227,7 +277,7 @@ class CartController extends Controller
         $productStockMap = Products::whereIn('id', collect($selectedItemsData)->pluck('product_id'))->pluck('stock', 'id');
         
         foreach ($selectedItemsData as $item) {
-            if ($item['quantity'] > $productStockMap[$item['product_id']]) {
+            if ($item['quantity'] > $productStockMap[$item['product_id']] ?? 0) {
                 return back()->with('error', 'Stok produk ' . $item['name'] . ' tidak mencukupi.')->withInput();
             }
             $total += $item['price'] * $item['quantity'];

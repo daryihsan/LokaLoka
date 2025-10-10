@@ -14,6 +14,9 @@ class CartItems extends Model
      *
      * @var list<string>
      */
+
+    public $timestamps = false;
+    
     protected $fillable = [
         'cart_id',
         'product_id',
