@@ -74,9 +74,6 @@
                                 <p class="font-semibold text-green-darker">
                                     {{ session('username') ?? 'User' }}
                                 </p>
-                                <p class="text-sm text-gray-500">
-                                    {{ session('user_email') }}
-                                </p>
                             </div>
                             <a href="{{ route('profile') }}" class="block px-4 py-2
                                 text-green-darker hover:bg-gray-100 rounded-lg">Profile

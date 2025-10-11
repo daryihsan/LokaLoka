@@ -15,7 +15,30 @@
         @endisset
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-3">
+        {{-- Dropdown Urutkan --}}
+        <form method="GET" action="{{ route('searchfilter') }}" class="flex items-center gap-2">
+            {{-- Pertahankan semua query selain sort dan page --}}
+            @foreach(request()->except('sort', 'page') as $key => $value)
+                @if(is_array($value))
+                    @foreach($value as $v)
+                        <input type="hidden" name="{{ $key }}[]" value="{{ $v }}">
+                    @endforeach
+                @else
+                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                @endif
+            @endforeach
+
+            <label for="sort" class="text-sm text-gray-700">Urutkan</label>
+            <select id="sort" name="sort" class="border rounded-lg px-3 py-2 text-sm"
+                    onchange="this.form.submit()">
+                <option value="newest" {{ request('sort','newest') === 'newest' ? 'selected' : '' }}>Terbaru</option>
+                <option value="best_selling" {{ request('sort') === 'best_selling' ? 'selected' : '' }}>Terlaris</option>
+                <option value="price_asc" {{ request('sort') === 'price_asc' ? 'selected' : '' }}>Termurah</option>
+                <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Termahal</option>
+            </select>
+        </form>
+
         <div class="flex flex-wrap gap-2">
             @if(request('category'))
                 <span class="px-3 py-1 rounded-full bg-gray-100 text-sm border">

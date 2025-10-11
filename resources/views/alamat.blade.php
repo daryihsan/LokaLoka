@@ -170,6 +170,7 @@
         @endif
 
         <div class="card">
+            {{-- Form Update Alamat --}}
             <form action="{{ route('alamat.update') }}" method="POST">
                 @csrf
                 <div class="form-group">
@@ -187,16 +188,20 @@
 
                 <div class="form-actions">
                     <div class="left-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href = '{{ route('checkout.show') }}'">Batal</button>
+                        <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ route('checkout.show') }}'">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
-                    
-                    {{-- Form Hapus Alamat --}}
-                    <form action="{{ route('alamat.delete') }}" method="POST" onsubmit="return confirm('Hapus alamat pengiriman? Ini akan menghapus data di sesi, Anda harus mengisi ulang di checkout.')">
-                        @csrf
-                        <button type="submit" class="btn btn-danger">Hapus Alamat</button>
-                    </form>
                 </div>
+            </form>
+
+            {{-- Form Hapus Alamat --}}
+            <form id="form-delete-alamat"
+                  action="{{ route('alamat.delete') }}"
+                  method="POST"
+                  class="mt-4"
+                  onsubmit="return confirm('Hapus alamat pengiriman? Ini akan menghapus data di sesi, Anda harus mengisi ulang di checkout.');">
+                @csrf
+                <button type="submit" class="btn btn-danger">Hapus Alamat</button>
             </form>
         </div>
     </div>
