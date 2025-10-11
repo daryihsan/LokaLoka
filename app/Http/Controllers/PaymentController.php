@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Orders;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
@@ -34,9 +35,24 @@ class PaymentController extends Controller
     {
         // Ambil order beserta detail itemnya
         $order = Orders::with('orderItems.product', 'user')->findOrFail($orderId);
-            
-        // Logika untuk menampilkan instruksi transfer bank atau konfirmasi COD
-        // Kita gunakan view yang sama, tapi logic di view akan berbeda
-        return view('payment', compact('order'));
+
+        // Tambahkan Kode Unik untuk transfer bank (stabil berdasarkan order id)
+        $uniqueCode = null;
+        $payableTotal = $order->total;
+
+        if (($order->payment_method ?? null) === 'transfer_bank') {
+            // Kode unik 3 digit berbasis id agar konsisten setiap kali dibuka
+            $uniqueCode = str_pad((string)(($order->id % 999)), 3, '0', STR_PAD_LEFT);
+            $payableTotal = (int)$order->total + (int)$uniqueCode;
+        }
+
+        // COD: jika status order sudah selesai/diterima, tampilkan indikator
+        $isReceived = false;
+        if (($order->payment_method ?? null) === 'cod') {
+            $status = strtolower((string)($order->status ?? ''));
+            $isReceived = in_array($status, ['delivered', 'completed', 'received', 'done']);
+        }
+
+        return view('payment', compact('order', 'uniqueCode', 'payableTotal', 'isReceived'));
     }
 }

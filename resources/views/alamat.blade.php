@@ -24,16 +24,16 @@
             font-family: 'Open Sans', sans-serif;
             background: var(--background-color);
             margin: 0;
-            padding: 40px 20px;
+            padding: 16px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            min-height: 100vh;
+            min-height: 60vh;
         }
 
         .page-container {
             width: 100%;
-            max-width: 700px;
+            max-width: 640px;
         }
 
         .page-header {
@@ -41,18 +41,17 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 20px;
-        }
+            margin-bottom: 16px;
 
         .page-header h1 {
             font-family: 'Roboto Slab', serif;
             color: var(--primary-color);
-            font-size: 2.0em;
+            font-size: 1.5rem;
             margin: 0;
         }
 
         .btn {
-            padding: 10px 18px;
+            padding: 8px 14px;
             border: none;
             border-radius: 8px;
             font-family: 'Roboto', sans-serif;
@@ -60,7 +59,7 @@
             cursor: pointer;
             text-decoration: none;
             font-size: 0.95em;
-            transition: all .3s ease;
+            transition: all .2s ease;
         }
 
         .btn-primary {
@@ -70,7 +69,7 @@
 
         .btn-primary:hover {
             background: #4a5335;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -80,7 +79,7 @@
 
         .btn-secondary:hover {
             background: #c7c7c7;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .btn-danger {
@@ -90,23 +89,23 @@
 
         .btn-danger:hover {
             background: #b91c1c;
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .card {
             background: var(--surface-color);
-            border-radius: 15px;
-            padding: 40px;
+            border-radius: 12px;
+            padding: 24px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: bold;
             color: var(--text-primary);
         }
@@ -114,7 +113,7 @@
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             box-sizing: border-box;
@@ -124,11 +123,11 @@
         }
 
         .form-group textarea {
-            min-height: 100px;
+            min-height: 90px;
         }
 
         .form-actions {
-            margin-top: 30px;
+            margin-top: 18px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -188,20 +187,19 @@
 
                 <div class="form-actions">
                     <div class="left-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='{{ route('checkout.show') }}'">Batal</button>
+                        <button type="button" class="btn btn-secondary" onclick="window.location.href = '{{ route('checkout.show') }}'">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
-                </div>
-            </form>
 
-            {{-- Form Hapus Alamat --}}
-            <form id="form-delete-alamat"
-                  action="{{ route('alamat.delete') }}"
-                  method="POST"
-                  class="mt-4"
-                  onsubmit="return confirm('Hapus alamat pengiriman? Ini akan menghapus data di sesi, Anda harus mengisi ulang di checkout.');">
-                @csrf
-                <button type="submit" class="btn btn-danger">Hapus Alamat</button>
+                    {{-- Form Hapus Alamat --}}
+                    <form id="form-delete-alamat"
+                          action="{{ route('alamat.delete') }}"
+                          method="POST"
+                          onsubmit="return confirm('Hapus alamat pengiriman? Ini akan menghapus data di sesi, Anda harus mengisi ulang di checkout.');">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">Hapus Alamat</button>
+                    </form>
+                </div>
             </form>
         </div>
     </div>

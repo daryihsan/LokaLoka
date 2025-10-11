@@ -8,17 +8,17 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 40px 20px;
-        min-height: 70vh;
+        padding: 24px 16px;
+        min-height: 60vh;
     }
 
     .payment-container {
         background-color: #ffffff;
         border-radius: 15px;
-        padding: 40px;
+        padding: 24px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         width: 100%;
-        max-width: 600px;
+        max-width: 640px;
     }
 
     .detail-row {
@@ -31,26 +31,19 @@
 
     .detail-row.total {
         border-top: 1px solid #e5e7eb;
-        font-size: 1.5rem;
-        font-weight: bold;
+        font-size: 1.25rem;
+        font-weight: 700;
         color: #ef4444;
-        margin-top: 1rem;
-        padding-top: 1rem;
-    }
-
-    .product-list-item {
-        display: flex;
-        gap: 1rem;
-        padding: 0.5rem 0;
-        align-items: center;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
     }
 
     .instruksi-box {
         background: #f7f9f2;
         border: 1px solid #e5e7eb;
         border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
+        padding: 1rem;
+        margin-top: 1rem;
     }
 
     .btn-copy {
@@ -72,56 +65,91 @@
 @section('content')
 <div class="payment-page">
     <div class="payment-container">
-        <h1 class="font-roboto-slab text-2xl font-bold text-green-darker mb-4">
+        <h1 class="font-roboto-slab text-2xl font-bold text-green-darker mb-3">
             Pembayaran Pesanan #{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}
         </h1>
 
-        <p class="text-gray-600 mb-6">
+        <p class="text-gray-600 mb-4">
             Metode Pembayaran: <strong class="capitalize">{{ str_replace('_', ' ', $order->payment_method) }}</strong>
         </p>
 
         @if ($order->payment_method === 'transfer_bank')
             {{-- Instruksi Transfer Bank --}}
             <div class="instruksi-box">
-                <h3 class="font-semibold text-xl text-green-darker mb-4">Instruksi Transfer Bank</h3>
-                
+                <h3 class="font-semibold text-lg text-green-darker mb-3">Instruksi Transfer Bank</h3>
+
+                @isset($uniqueCode)
+                    <div class="bg-white p-3 rounded-lg border mb-3">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">Kode Unik</span>
+                                <strong class="text-red-600">{{ $uniqueCode }}</strong>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-700">Nominal Transfer</span>
+                                <div class="flex items-center gap-2">
+                                    <strong class="text-red-600">Rp {{ number_format($payableTotal ?? $order->total, 0, ',', '.') }}</strong>
+                                    <button class="btn-copy" onclick="copyToClipboard('{{ (int)($payableTotal ?? $order->total) }}', 'Nominal Transfer')">Salin</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endisset
+
                 <div class="space-y-3">
-                    <p class="text-sm">Silakan transfer sejumlah total pembayaran ke salah satu rekening di bawah:</p>
-                    
+                    <p class="text-sm">Silakan transfer sejumlah nominal di atas ke salah satu rekening berikut:</p>
+
                     <div class="bg-white p-3 rounded-lg border">
-                        <p class="text-sm font-medium">Bank Mandiri (a.n. Loka Loka)</p>
+                        <div class="flex items-center gap-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9f/Bank_Mandiri_logo.svg"
+                                 alt="Bank Mandiri" class="h-5"
+                                 onerror="this.style.display='none'">
+                            <p class="text-sm font-medium m-0">Bank Mandiri (a.n. Loka Loka)</p>
+                        </div>
                         <div class="flex justify-between items-center mt-1">
-                            <strong id="rek-mandiri" class="text-lg text-red-600">137000-XX-7777</strong>
+                            <strong class="text-lg text-red-600">137000-XX-7777</strong>
                             <button class="btn-copy" onclick="copyToClipboard('137000-XX-7777', 'Rekening Mandiri')">Salin</button>
                         </div>
                     </div>
 
                     <div class="bg-white p-3 rounded-lg border">
-                        <p class="text-sm font-medium">Bank BCA (a.n. Loka Loka)</p>
+                        <div class="flex items-center gap-2">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/BCA_logo.svg"
+                                 alt="BCA" class="h-5"
+                                 onerror="this.style.display='none'">
+                            <p class="text-sm font-medium m-0">Bank BCA (a.n. Loka Loka)</p>
+                        </div>
                         <div class="flex justify-between items-center mt-1">
-                            <strong id="rek-bca" class="text-lg text-red-600">777-XX-9999</strong>
+                            <strong class="text-lg text-red-600">777-XX-9999</strong>
                             <button class="btn-copy" onclick="copyToClipboard('777-XX-9999', 'Rekening BCA')">Salin</button>
                         </div>
                     </div>
                 </div>
 
-                <p class="text-xs text-gray-500 mt-4">Pesanan akan diproses setelah pembayaran Anda terverifikasi (maks 1x24 jam).</p>
+                <p class="text-xs text-gray-500 mt-3">Pesanan akan diproses setelah pembayaran Anda terverifikasi (maks 1x24 jam).</p>
             </div>
         @elseif ($order->payment_method === 'cod')
             {{-- Instruksi COD --}}
             <div class="instruksi-box bg-green-50">
-                <h3 class="font-semibold text-xl text-green-darker mb-4">Bayar di Tempat (COD)</h3>
+                <h3 class="font-semibold text-lg text-green-darker mb-3">Bayar di Tempat (COD)</h3>
+
+                @if(!empty($isReceived))
+                    <div class="mb-3 p-3 rounded-lg border bg-white text-green-700 font-semibold">
+                        Pesanan sudah diterima.
+                    </div>
+                @endif
+
                 <p class="text-gray-700">Pembayaran akan dilakukan secara tunai kepada kurir saat pesanan Anda tiba di alamat:</p>
                 <div class="mt-3 p-3 bg-white rounded-lg border text-sm whitespace-pre-wrap">
-                    <p class="font-medium">{{ $order->user->name ?? 'N/A' }} ({{ $order->user->phone_number ?? 'N/A' }})</p>
-                    <p>{{ $order->address_text }}</p>
+                    <p class="font-medium m-0">{{ $order->user->name ?? 'N/A' }} ({{ $order->user->phone_number ?? 'N/A' }})</p>
+                    <p class="m-0">{{ $order->address_text }}</p>
                 </div>
             </div>
         @endif
 
-        <div class="border-t pt-4 mt-8">
-            <h3 class="font-semibold text-green-darker mb-3">Ringkasan Pembayaran</h3>
-            
+        <div class="border-t pt-4 mt-6">
+            <h3 class="font-semibold text-green-darker mb-2">Ringkasan Pembayaran</h3>
+
             <div class="detail-row">
                 <span class="text-gray-700">Subtotal Produk</span>
                 <span>Rp {{ number_format($order->total - $order->shipping_cost, 0, ',', '.') }}</span>
@@ -136,7 +164,7 @@
             </div>
         </div>
 
-        <div class="mt-8 space-y-3">
+        <div class="mt-6 space-y-2">
             <a href="{{ route('profile') }}" class="btn btn-primary w-full">Lihat Status Pesanan Saya</a>
             <a href="{{ route('homepage') }}" class="btn btn-secondary w-full">Kembali ke Beranda</a>
         </div>
@@ -161,7 +189,6 @@
     }
 
     function copyToClipboard(text, item) {
-        // Karena ini berjalan di iframe, kita pakai cara yang lebih aman
         const tempInput = document.createElement('textarea');
         tempInput.value = text;
         document.body.appendChild(tempInput);
