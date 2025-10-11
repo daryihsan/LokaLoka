@@ -11,26 +11,25 @@
     </div>
 
     <!-- Navigasi -->
-    @auth
-      <div>
-        <h3 class="font-semibold text-green-darker mb-3">Navigasi</h3>
-        <ul class="space-y-2 text-sm">
+    <div>
+      <h3 class="font-semibold text-green-darker mb-3">Navigasi</h3>
+      <ul class="space-y-2 text-sm">
         <li><a class="text-white hover:text-white" href="{{ route('homepage') }}">Beranda</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('searchfilter') }}">Katalog</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('cart.show') }}">Keranjang</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('profile') }}">Profile</a></li>
-        </ul>
-      </div>
-    @endauth
+      </ul>
+    </div>
 
     <!-- Bantuan -->
     <div>
       <h3 class="font-semibold text-green-darker mb-3">Bantuan</h3>
       <ul class="space-y-2 text-sm">
         <li><a class="text-white hover:text-white" href="mailto:support@lokaloka.com">Customer Service</a></li>
-        <li><a class="text-white hover:text-white" href="{{ route('about') }}">FAQ</a></li>
-        <li><a class="text-white hover:text-white" href="#">Kebijakan Privasi</a></li>
-        <li><a class="text-white hover:text-white" href="#">Syarat & Ketentuan</a></li>
+        <li><a class="text-white hover:text-white" href="{{ route('faq') }}">FAQ</a></li>
+        <li><a class="text-white hover:text-white" href="{{ route('privacy') }}">Kebijakan Privasi</a></li>
+        <li><a class="text-white hover:text-white" href="{{ route('terms') }}">Syarat & Ketentuan</a></li>
+        <li><a class="text-white hover:text-white" href="{{ route('about') }}">Tentang Kami</a></li>
       </ul>
     </div>
 
@@ -46,7 +45,7 @@
   </div>
 
   <div class="border-t border-gray-200">
-    <div class=""text-white hover:text-white max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-sm">
+    <div class="text-white max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center text-sm">
       <span>© {{ date('Y') }} LokaLoka. All rights reserved.</span>
       <span>“Cinta Lokal, Belanja Loka.”</span>
     </div>

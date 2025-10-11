@@ -54,8 +54,14 @@ Route::post('/alamat/delete', [AlamatController::class, 'delete'])->name('alamat
 Route::get('/payment/qris/{orderId}', [PaymentController::class, 'showQris'])->name('payment.qris');
 Route::get('/payment/other/{orderId}', [PaymentController::class, 'showOtherPayment'])->name('payment.other'); // Route untuk transfer/COD
 
-// TENTANG KAMI
-Route::view('/about', 'about')->name('about');
+
+// =======================================================
+// HALAMAN INFORMASI: FAQ, Kebijakan Privasi, Syarat & Ketentuan, About Us
+// =======================================================
+Route::view('/faq', 'etc.faq')->name('faq');
+Route::view('/kebijakan-privasi', 'etc.policy&privacy')->name('privacy');
+Route::view('/syarat-ketentuan', 'etc.terms&conditions')->name('terms');
+Route::view('/about', 'etc.about')->name('about');
 
 // =======================================================
 // ADMIN ROUTES (Tidak ada perubahan di sini kecuali ada yang spesifik)
