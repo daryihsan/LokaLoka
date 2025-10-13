@@ -79,7 +79,7 @@
 
     .option-price {
         font-weight: 700;
-        color: #ef4444;
+        color: #333;
     }
 
     /* Order Summary */
@@ -139,7 +139,7 @@
         font-size: 0.875rem;
         min-width: 80px;
         text-align: right;
-        color: #10b981;
+        color: #333;
     }
     .summary-row {
         display: flex;
@@ -266,7 +266,7 @@
                 
                 <div class="summary-row summary-total text-green-darker">
                     <span>Total Pembayaran</span>
-                    <span id="summary-total" class="text-red-600">Rp 0</span>
+                    <span id="summary-total">Rp 0</span>
                 </div>
             </div>
 
