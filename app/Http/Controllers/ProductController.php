@@ -78,7 +78,6 @@ class ProductController extends Controller
         
         // 4. Filter Lokasi (ASUMSI: Anda memiliki kolom 'location' di tabel products)
         if ($request->filled('location')) {
-            // Jika kolom location tidak ada, ini akan menimbulkan error.
             // Asumsi: products.location ada
             $query->where('location', 'like', '%' . $request->location . '%'); 
         }
@@ -89,15 +88,23 @@ class ProductController extends Controller
             $query->where('rating', '>=', $request->min_rating); 
         }
 
-        // Sorting
+        // Sorting / Urutan
         switch ($request->sort) {
+            case 'best_selling':
+                // Urutkan berdasarkan total penjualan (qty) dari tabel order_items
+                $query->addSelect([
+                    'total_sold' => DB::table('order_items')
+                        ->selectRaw('COALESCE(SUM(qty), 0)')
+                        ->whereColumn('order_items.product_id', 'products.id')
+                ])->orderByDesc('total_sold');
+                break;
             case 'newest':
                 $query->latest();
                 break;
-            case 'price_asc':
+            case 'price_asc':     // Termurah
                 $query->orderBy('price', 'asc');
                 break;
-            case 'price_desc':
+            case 'price_desc':    // Termahal
                 $query->orderBy('price', 'desc');
                 break;
             case 'rating_desc':
@@ -105,7 +112,7 @@ class ProductController extends Controller
                 $query->orderBy('rating', 'desc');
                 break;
             default:
-                // Urutkan berdasarkan relevansi (pencocokan nama) atau default terbaru
+                // Urutan default: terbaru
                 $query->latest();
                 break;
         }

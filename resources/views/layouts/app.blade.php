@@ -39,7 +39,7 @@
 
     @stack('head')
 </head>
-<body class="bg-[#fffceb] text-green-darker font-open-sans">
+<body class="bg-[#ffffff] text-green-darker font-open-sans">
     @php
         $hideHeaderFooter = request()->routeIs('login', 'register') || request()->is('login', 'register');
     @endphp
