@@ -270,9 +270,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary w-full mt-6" onclick="processCheckout()">
-                Bayar Sekarang
-            </button>
+            <button class="btn btn-primary w-full mt-6 checkout-button" onclick="processCheckout()"> Bayar Sekarang </button>
         </div>
     </div>
 
@@ -424,7 +422,7 @@
             return;
         }
 
-        const btn = document.querySelector('.checkout-button');
+        const btn = document.querySelector('.btn.btn-primary.w-full.mt-6.checkout-button');
         btn.disabled = true;
         btn.textContent = 'Memproses...';
 

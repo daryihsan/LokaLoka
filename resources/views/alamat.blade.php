@@ -3,15 +3,19 @@
 @section('title', 'Ubah Alamat | Loka Loka')
 
 @section('content')
+
 <div class="max-w-2xl mx-auto">
-    <a href="{{ route('checkout.show') }}" class="btn btn-secondary">Kembali</a>
-    <div class="flex items-center justify-between gap-3 mb-6">
-        <h1 class="font-roboto-slab text-2xl text-green-darker">Ubah Alamat Pengiriman</h1>
-        <div></div>
+    {{-- Header: tombol kembali di kiri, judul di tengah --}}
+    <div class="relative mb-6">
+        <h1 class="font-roboto-slab text-2xl text-green-darker text-center">Ubah Alamat Pengiriman</h1>
+        <a href="{{ route('checkout.show') }}"
+           class="btn btn-secondary absolute left-0 top-1/2 -translate-y-1/2">
+            Kembali
+        </a>
     </div>
 
-    <div class="card p-6">
-        {{-- Form Update Alamat (Inputs saja) --}}
+    <div class="card p-6" style="background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 1px 2px rgba(0,0,0,.04);">
+        {{-- Form Update Alamat (inputs saja) --}}
         <form id="formUpdateAlamat" action="{{ route('alamat.update') }}" method="POST" class="space-y-5">
             @csrf
 
@@ -23,7 +27,7 @@
                     name="fullName"
                     value="{{ old('fullName', $defaultNama) }}"
                     required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus-ring"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-[#ffffff] outline-none focus:outline-none focus:ring-0 focus:border-gray-400"
                     placeholder="Nama penerima"
                 >
             </div>
@@ -36,7 +40,7 @@
                     name="phoneNumber"
                     value="{{ old('phoneNumber', $defaultTelepon) }}"
                     required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus-ring"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-[#ffffff] outline-none focus:outline-none focus:ring-0 focus:border-gray-400"
                     placeholder="Contoh: 0812xxxxxxx"
                 >
             </div>
@@ -48,7 +52,7 @@
                     name="streetAddress"
                     rows="4"
                     required
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus-ring"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2 bg-[#ffffff] outline-none focus:outline-none focus:ring-0 focus:border-gray-400"
                     placeholder="Nama jalan, nomor, RT/RW, kelurahan, kecamatan, kota/kabupaten, provinsi, kode pos"
                 >{{ old('streetAddress', $defaultAlamat) }}</textarea>
             </div>
@@ -61,7 +65,7 @@
                 <button type="submit" form="formUpdateAlamat" class="btn btn-primary">Simpan Perubahan</button>
             </div>
 
-            {{-- Form Hapus Alamat --}}
+            {{-- Form Hapus Alamat terpisah agar tidak nested, tapi tampil sebaris --}}
             <form
                 action="{{ route('alamat.delete') }}"
                 method="POST"
