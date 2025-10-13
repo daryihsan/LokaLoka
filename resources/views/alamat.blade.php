@@ -4,15 +4,15 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto">
+    <a href="{{ route('checkout.show') }}" class="btn btn-secondary">Kembali</a>
     <div class="flex items-center justify-between gap-3 mb-6">
-        <a href="{{ route('checkout.show') }}" class="btn btn-secondary">Kembali</a>
         <h1 class="font-roboto-slab text-2xl text-green-darker">Ubah Alamat Pengiriman</h1>
         <div></div>
     </div>
 
     <div class="card p-6">
-        {{-- Form Update Alamat --}}
-        <form action="{{ route('alamat.update') }}" method="POST" class="space-y-5">
+        {{-- Form Update Alamat (Inputs saja) --}}
+        <form id="formUpdateAlamat" action="{{ route('alamat.update') }}" method="POST" class="space-y-5">
             @csrf
 
             <div>
@@ -49,32 +49,34 @@
                     rows="4"
                     required
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus-ring"
-                    placeholder="Nama jalan, nomor, RT/RW, kelurahan, kecamatan, kota/kabupaten, provinsi, kode pos">{{ old('streetAddress', $defaultAlamat) }}</textarea>
-            </div>
-
-            <div class="flex items-center justify-between gap-3 pt-2">
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('checkout.show') }}" class="btn btn-secondary">Batal</a>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </div>
+                    placeholder="Nama jalan, nomor, RT/RW, kelurahan, kecamatan, kota/kabupaten, provinsi, kode pos"
+                >{{ old('streetAddress', $defaultAlamat) }}</textarea>
             </div>
         </form>
 
-        {{-- Form Hapus Alamat (dipisahkan agar tidak nested) --}}
-        <form
-            action="{{ route('alamat.delete') }}"
-            method="POST"
-            class="mt-4 text-right"
-            onsubmit="return confirm('Hapus alamat pengiriman? Data alamat di sesi akan dihapus.');"
-        >
-            @csrf
-            <button
-                type="submit"
-                class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition"
+        {{-- Baris Aksi (sebaris): Batal, Simpan, Hapus --}}
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('checkout.show') }}" class="btn btn-secondary">Batal</a>
+                <button type="submit" form="formUpdateAlamat" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+
+            {{-- Form Hapus Alamat --}}
+            <form
+                action="{{ route('alamat.delete') }}"
+                method="POST"
+                onsubmit="return confirm('Hapus alamat pengiriman? Data alamat di sesi akan dihapus.');"
+                class="inline-block"
             >
-                Hapus Alamat
-            </button>
-        </form>
+                @csrf
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition"
+                >
+                    Hapus Alamat
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 @endsection
