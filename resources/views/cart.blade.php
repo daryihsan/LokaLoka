@@ -55,7 +55,7 @@
     <div class="flex items-center justify-between mb-6">
         {{-- PERBAIKAN: Tombol Kembali dengan history.back() atau ke homepage --}}
         <button class="btn btn-secondary"
-            onclick="history.length > 1 ? history.back() : window.location.href = '{{ route('homepage') }}'">
+            onclick="window.location.href = '{{ route('homepage') }}'">
             Kembali
         </button>
         <h1 class="font-roboto-slab text-3xl font-bold text-green-darker">Keranjang
@@ -453,6 +453,9 @@
                 const name = check.dataset.name;
                 const qty = parseInt(qtyInput.value || '1');
 
+                const itemRow = check.closest('.cart-item-row');
+                const imageUrl = itemRow ? itemRow.querySelector('img').src : null; 
+
                 subtotal += price * qty;
 
                 // Kumpulkan data terpilih
@@ -461,7 +464,8 @@
                     product_id: productId,
                     name: name,
                     price: price,
-                    quantity: qty
+                    quantity: qty,
+                    image_url: imageUrl
                 });
             }
         });

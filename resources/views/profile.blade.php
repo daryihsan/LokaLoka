@@ -15,6 +15,14 @@
 <section class="main-content grid md:grid-cols-2 gap-6">
     <div class="card p-6">
         <h2 class="font-roboto text-xl font-bold mb-4">Identitas Diri</h2>
+        <div class="flex flex-col items-center mb-4">
+            {{-- Avatar Placeholder --}}
+            @php
+                $user_avatar = Session::get('user_avatar', $user->avatar_url ?? 'https://i.pravatar.cc/150?img=1');
+            @endphp 
+            <img src="{{ $user_avatar }}" id="user-avatar-display" alt="Avatar Pengguna" class="w-24 h-24 rounded-full object-cover mb-3 border-4 border-primary shadow-lg">
+            <button onclick="openAvatarModal()" class="text-sm btn-link">Ganti Avatar</button>
+        </div>
         <div class="identity-info space-y-2">
             <p><strong>Username:</strong> {{ $user->name ?? 'N/A' }}</p>
             <p><strong>Email:</strong> {{ $user->email ?? 'N/A' }}</p>
@@ -28,13 +36,22 @@
     <div class="card p-6 lg:col-span-1">
         {{-- PERBAIKAN: Tombol Kembali dengan history.back() atau ke homepage --}}
         <button class="btn btn-secondary mb-4"
-            onclick="history.length > 1 ? history.back() : window.location.href = '{{ route('homepage') }}'">
+            onclick="window.location.href = '{{ route('homepage') }}'">
             Kembali
         </button>
         <h2 class="font-roboto text-xl font-bold mb-4">Daftar Pesanan</h2>
-        <div class="filter-controls flex justify-between items-center mb-4">
+        <div class="filter-controls flex justify-between items-center mb-4 relative">
             {{-- Tombol Filter --}}
-            <button id="filter-btn" class="btn btn-secondary">Filter Status</button>
+            <button id="filter-btn" class="btn btn-secondary">Filter Status ▼</button>
+            
+            {{-- Dropdown Filter --}}
+            <div id="filter-options" class="hidden absolute top-full left-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-xl z-10">
+                <a href="#" data-status="semua" class="block px-4 py-2 hover:bg-gray-100 rounded-lg text-sm">Semua Status</a>
+                <a href="#" data-status="diproses" class="block px-4 py-2 hover:bg-gray-100 rounded-lg text-sm">Diproses</a>
+                <a href="#" data-status="dikirim" class="block px-4 py-2 hover:bg-gray-100 rounded-lg text-sm">Dikirim</a>
+                <a href="#" data-status="selesai" class="block px-4 py-2 hover:bg-gray-100 rounded-lg text-sm">Selesai</a>
+                <a href="#" data-status="dibatalkan" class="block px-4 py-2 hover:bg-gray-100 rounded-lg text-sm">Dibatalkan</a>
+            </div>
         </div>
         <div class="order-list divide-y">
             <div id="no-orders-message" class="text-center text-gray-500 py-4 hidden">Tidak ada pesanan dengan status ini.</div>
@@ -120,13 +137,54 @@
                             <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
-
+                    <div class="border-t pt-4">
+                        <p class="font-semibold text-sm mb-2">Ganti Password (Opsional)</p>
+                        <div>
+                            <label class="block text-sm">Password Baru</label>
+                            <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="password" name="password" minlength="6">
+                        </div>
+                        <div>
+                            <label class="block text-sm">Konfirmasi Password</label>
+                            <input class="mt-1 w-full border border-gray-300 rounded-lg p-2" type="password" name="password_confirmation" minlength="6">
+                            @error('password')
+                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                     <div class="flex items-center justify-end gap-2 pt-2">
-                        <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Batal</button>
+                        <button type="button" class="btn btn-secondary"
+                        onclick="closeEditModal()">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+<div id="avatarModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-50"
+    onclick="closeAvatarModal()" aria-hidden="true"></div>
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+            <h3 class="font-roboto text-lg font-bold text-green-darker mb-4 border-b pb-3">Pilih Avatar</h3>
+            <form id="avatarForm" method="POST" action="{{ route('profile.avatar.update') }}" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-4 gap-4">
+                    @foreach($avatars as $avatar)
+                    <label class="cursor-pointer">
+                        {{-- Tambahkan input hidden untuk memastikan data yang disimpan adalah URL yang dipilih --}}
+                        <input type="radio" name="avatar_url" value="{{ $avatar }}" class="hidden" {{ $user_avatar === $avatar ? 'checked' : '' }}>
+                        <img src="{{ $avatar }}" alt="Avatar" class="w-full h-auto rounded-full object-cover border-4 border-transparent hover:border-primary transition-colors duration-200">
+                    </label>
+                    @endforeach
+                </div>
+                {{-- Hapus input hidden yang tidak diperlukan (name, email, dll.) karena tidak ada update DB --}}
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" class="btn btn-secondary" onclick="closeAvatarModal()">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Avatar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -149,6 +207,21 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeEditM
 document.addEventListener('DOMContentLoaded', openEditModal);
 @endif
 
+function openAvatarModal() {
+        document.getElementById('avatarModal')?.classList.remove('hidden');
+    }
+function closeAvatarModal() {
+    document.getElementById('avatarModal')?.classList.add('hidden');
+}
+
+// Update avatar preview saat memilih
+document.querySelectorAll('#avatarModal input[name="avatar_url"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        if (radio.checked) {
+            document.getElementById('user-avatar-display').src = radio.value;
+        }
+    });
+});
 // ----- Filter Pesanan -----
 const filterBtn = document.getElementById('filter-btn');
 const filterDropdown = document.getElementById('filter-options');
@@ -202,6 +275,11 @@ document.addEventListener('click', (e) => {
 });
 
 // Init
-document.addEventListener('DOMContentLoaded', () => filterOrders('semua'));
+document.addEventListener('DOMContentLoaded', () => {
+        // Set default filter ke 'semua' dan highlight item pertama
+        const defaultFilter = document.querySelector('#filter-options a[data-status="semua"]');
+        if (defaultFilter) setActiveFilter(defaultFilter);
+        filterOrders('semua');
+    });
 </script>
 @endpush

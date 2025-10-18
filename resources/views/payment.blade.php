@@ -150,6 +150,30 @@
         <div class="border-t pt-4 mt-6">
             <h3 class="font-semibold text-green-darker mb-2">Ringkasan Pembayaran</h3>
 
+            <div class="space-y-3 mb-4 max-h-48 overflow-y-auto pr-2">
+                @foreach($order->orderItems as $item)
+                <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                        {{-- TAMBAHAN: Link ke Detail Produk dan Gambar --}}
+                        <a href="{{ route('product.show', $item->product->id) }}" target="_blank" title="Lihat Detail Produk">
+                            <img src="{{ $item->product->image_url ?? 'https://placehold.co/40x40/e3d8c2/5c6641?text=P' }}" 
+                                alt="{{ $item->product->name ?? 'Produk Dihapus' }}" 
+                                style="object-fit: contain;"
+                                class="w-full h-full"
+                            >
+                        </a>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium m-0 truncate">
+                            {{-- TAMBAHAN: Link di Nama Produk --}}
+                            <a href="{{ route('product.show', $item->product->id) }}" class="hover:underline text-green-darker">{{ $item->qty }}x {{ $item->product->name ?? 'Produk Dihapus' }}</a>
+                        </p>
+                    </div>
+                    <span class="text-sm font-semibold text-green-800 flex-shrink-0">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                </div>
+                @endforeach
+            </div>
+
             <div class="detail-row">
                 <span class="text-gray-700">Subtotal Produk</span>
                 <span>Rp {{ number_format($order->total - $order->shipping_cost, 0, ',', '.') }}</span>

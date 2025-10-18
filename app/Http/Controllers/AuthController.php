@@ -156,7 +156,15 @@ class AuthController extends Controller
         // Ambil data pesanan user (asumsi relasi sudah benar)
         $orders = $user->orders()->latest()->get(); 
         
-        return view('profile', compact('user', 'orders'));
+        $avatars = [
+            'https://i.pravatar.cc/150?img=1',
+            'https://i.pravatar.cc/150?img=3',
+            'https://i.pravatar.cc/150?img=5',
+            'https://i.pravatar.cc/150?img=7',
+            'https://i.pravatar.cc/150?img=9',
+        ];
+
+        return view('profile', compact('user', 'orders', 'avatars'));
     }
     
     // Process profile update (placeholder)

@@ -36,8 +36,7 @@ class ProductController extends Controller
             ->where('is_active', true) // Produk aktif saja
             ->where('stock', '>', 0)   // Produk dengan stok > 0
             ->latest()
-            ->take(12)
-            ->get();
+            ->paginate(12);
 
         // Ambil data user yang sedang login untuk ditampilkan di header
         $user = null;

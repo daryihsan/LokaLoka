@@ -131,6 +131,9 @@
                 <p class="text-gray-600">Tidak ada produk rekomendasi saat ini.</p>
             @endforelse
         </div>
+        <div class="mt-8">
+            {{ $recommendedProducts->links() }}
+        </div>
     </section>
 </div>
 

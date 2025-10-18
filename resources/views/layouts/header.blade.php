@@ -2,10 +2,11 @@
     <div class="flex items-center justify-between max-w-7xl mx-auto">
         <!-- Logo -->
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
-                <span class="text-green-darker font-bold text-lg">L</span>
-            </div>
-            <a href="{{ route('homepage') }}" class="font-roboto-slab text-3xl font-bold tracking-wide text-white hover:text-accent transition" aria-label="Loka Loka - ke Beranda">
+            <a href="{{ route('homepage') }}" class="flex items-center gap-2 font-roboto-slab
+            text-3xl font-bold tracking-wide text-white hover:text-accent
+            transition" aria-label="Loka Loka ke Beranda">
+                {{-- Perbaikan: Set background none pada gambar dan pakai ukuran yang lebih kecil --}}
+                <img src="{{ asset('images/logo.png') }}" alt="Logo Loka Loka" class="w-8 h-auto object-contain flex-shrink-0" style="background: none; mix-blend-mode: multiply;">
                 Loka Loka
             </a>
         </div>

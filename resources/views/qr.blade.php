@@ -66,11 +66,19 @@
             <div class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
                 @foreach($order->orderItems as $item)
                     <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">☕</span>
+                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden">
+                        {{-- TAMBAHAN: Link ke Detail Produk dan Gambar --}}
+                            <a href="{{ route('product.show', $item->product->id) }}" target="_blank" title="Lihat Detail Produk">
+                                <img src="{{ $item->product->image_url ?? 'https://placehold.co/50x50/e3d8c2/5c6641?text=P' }}" 
+                                    alt="{{ $item->product->name ?? 'Produk Dihapus' }}" 
+                                    style="object-fit: contain;"
+                                    class="w-full h-full"
+                                >
+                            </a>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h4 class="font-medium text-green-darker">{{ $item->product->name ?? 'Produk Dihapus' }}</h4>
+                            <h4 class="font-medium text-green-darker">
+                                <a href="{{ route('product.show', $item->product->id) }}" class="hover:underline">{{ $item->product->name ?? 'Produk Dihapus' }}</a>
                             <p class="text-sm text-gray-600">{{ $item->qty }}x @php echo number_format($item->price, 0, ',', '.') @endphp</p>
                         </div>
                         <div class="text-right text-sm">
