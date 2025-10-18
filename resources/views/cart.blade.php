@@ -453,6 +453,9 @@
                 const name = check.dataset.name;
                 const qty = parseInt(qtyInput.value || '1');
 
+                const itemRow = check.closest('.cart-item-row');
+                const imageUrl = itemRow ? itemRow.querySelector('img').src : null; 
+
                 subtotal += price * qty;
 
                 // Kumpulkan data terpilih
@@ -461,7 +464,8 @@
                     product_id: productId,
                     name: name,
                     price: price,
-                    quantity: qty
+                    quantity: qty,
+                    image_url: imageUrl
                 });
             }
         });

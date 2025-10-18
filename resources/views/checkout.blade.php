@@ -107,7 +107,7 @@
     .product-item img {
         width: 50px;
         height: 50px;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 0.5rem;
     }
 
@@ -165,9 +165,9 @@
 
 @section('content')
 
-<button class="btn btn-secondary mb-4" onclick="history.back()">
-    &larr; Kembali
-</button>
+<a href="{{ route('cart.show') }}" class="btn btn-secondary mb-4">
+    &larr; Kembali ke Keranjang
+</a>
 
 <div class="checkout-container">
 
@@ -354,15 +354,19 @@
         if (itemsFromCart && itemsFromCart.length > 0) {
             itemsFromCart.forEach(item => {
                 const productItemHTML = `
-                    <div class="product-item" data-price="${item.price}"
+                    <div class="product-item" 
+                        data-price="${item.price}"
                         data-product-id="${item.product_id}" 
                         data-item-id="${item.id}"
                         data-name="${item.name}">
                         
-                        <img src="${item.image_url || 'https://placehold.co/50x50/e3d8c2/5c6641?text=P'}" alt="${item.name}">
-                        
+                        <a href="/product/${item.product_id}" target="_blank" title="Lihat Detail Produk">
+                            <img src="${item.image_url ||
+                                'https://placehold.co/50x50/e3d8c2/5c6641?text=P'}" alt="${item.name}">
+                        </a>        
+
                         <div class="product-details">
-                            <h3>${item.name}</h3>
+                            <h3><a href="/product/${item.product_id}" class="hover:underline">${item.name}</a></h3>
                             <p>${formatRupiah(item.price)}</p>
                         </div>
                         

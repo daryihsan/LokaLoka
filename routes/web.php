@@ -8,6 +8,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController; // Perubahan: Import CheckoutController
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AvatarController;
 
 // Redirect root to login
 Route::get('/', function () {
@@ -33,6 +34,8 @@ Route::get('/searchfilter', [ProductController::class, 'searchfilter'])->name('s
 // PROFIL & PESANAN
 Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
 Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update');
+// AVATAR MANAGEMENT (Menggunakan Session)
+Route::post('/profile/avatar/update', [AvatarController::class, 'update'])->name('profile.avatar.update');
 
 // KERANJANG (CART)
 Route::get('/cart', [CartController::class, 'showCart'])->name('cart.show');
