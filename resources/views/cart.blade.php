@@ -55,7 +55,7 @@
     <div class="flex items-center justify-between mb-6">
         {{-- PERBAIKAN: Tombol Kembali dengan history.back() atau ke homepage --}}
         <button class="btn btn-secondary"
-            onclick="history.length > 1 ? history.back() : window.location.href = '{{ route('homepage') }}'">
+            onclick="window.location.href = '{{ route('homepage') }}'">
             Kembali
         </button>
         <h1 class="font-roboto-slab text-3xl font-bold text-green-darker">Keranjang
