@@ -108,6 +108,27 @@
     </div>
 </header>
 
+
+{{-- 1. Wadah Toast Notif (Selalu di atas) --}}
+{{-- Tambahkan 'pointer-events-none' agar Toast tidak menghalangi klik saat tersembunyi --}}
+<div id="toast-notification-global" class="fixed top-5 right-5 bg-white border
+border-gray-200 rounded-lg shadow-lg p-4 transform translate-x-full
+transition-transform duration-300 z-50 pointer-events-none">
+  <div id="toast-message-global" class="font-medium"></div>
+</div>
+
+{{-- 2. Wadah Global Error (Tampil di dalam container-page) --}}
+{{-- Ambil error yang di-pass dari Controller, tampilkan di sini. --}}
+@if ($errors->any())
+<div class="container-page pt-4 md:pt-8" id="global-error-container">
+    <div class="alert alert-error">
+        @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <script>
 function toggleUserMenu() {
     const menu = document.getElementById('user-dropdown');
@@ -139,4 +160,47 @@ document.addEventListener('keydown', function (e) {
         }
     }
 });
+</script>
+
+{{-- 3. Tambahkan fungsi showToast dan inisialisasi untuk menangkap session sukses --}}
+<script>
+    // Fungsi universal untuk menampilkan Toast
+    function showToast(type, message) {
+        const toast = document.getElementById('toast-notification-global');
+        const toastMessage = document.getElementById('toast-message-global');
+        if (!toast || !toastMessage || message.trim() === '') return;
+
+        if (type === 'success') {
+            toast.style.backgroundColor = '#d1fae5';
+            toastMessage.style.color = '#059669';
+        } else {
+            toast.style.backgroundColor = '#fee2e2';
+            toastMessage.style.color = '#dc2626';
+        }
+        toastMessage.textContent = message;
+        
+        // 1. Tampilkan dan aktifkan interaksi
+        toast.classList.remove('translate-x-full', 'pointer-events-none');
+        toast.classList.add('pointer-events-auto');
+
+        // 2. Sembunyikan setelah 3 detik
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            
+            // 3. Matikan interaksi HANYA setelah transisi KELUAR (300ms) selesai.
+            // Kita gunakan total 300ms (transisi) + 50ms (buffer) = 350ms
+            // Note: total waktu ini dihitung sejak class 'translate-x-full' ditambahkan.
+            setTimeout(() => toast.classList.add('pointer-events-none'), 350); 
+            
+        }, 3000); // Tampil selama 3.0 detik
+    }
+    
+    // Tangkap Session Success setelah DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Ambil session success
+        const successMessage = '{{ session('success') }}';
+        if (successMessage && successMessage.trim().length > 0) {
+            showToast('success', successMessage.trim());
+        }
+    });
 </script>

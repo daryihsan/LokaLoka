@@ -23,6 +23,39 @@
     button { width: 100%; padding: 14px; border: none; border-radius: 8px; background-color: #5c6641; color: white; font-family: 'Roboto', sans-serif; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s; margin-top: 10px; }
     button:hover { background-color: #4a5335; transform: translateY(-2px); }
     button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+    .btn-form {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s;
+        margin-top: 10px; /* Tambahan margin untuk pemisah dari input terakhir */
+    }
+    .btn-primary-form {
+        background-color: var(--brand-primary, #5c6641);
+        color: white;
+    }
+    .btn-primary-form:hover {
+        background-color: var(--brand-primary-dark, #4a5335);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .btn-google-form {
+        background-color: #db4437;
+        color: white;
+    }
+    .btn-google-form:hover {
+        background-color: #c23321;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
     .footer-link { margin-top: 25px; text-align: center; font-size: 0.9em; }
     .footer-link a { color: #5c6641; text-decoration: none; font-weight: bold; }
     .footer-link a:hover { text-decoration: underline; }
@@ -98,8 +131,16 @@
                 </div>
             </div>
 
-            <button type="submit">DAFTAR</button>
+            <button type="submit" class="btn-form btn-primary-form">DAFTAR</button>
         </form>
+
+        <div class="mt-4">
+            <div class="text-center text-sm text-gray-500 mb-2">atau</div>
+            <a href="{{ route('google.redirect') }}" class="btn-form btn-google-form">
+                <svg style="margin-right: 10px;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="0"><path d="M22.5 12.58c0-.78-.07-1.53-.2-2.26H12v4.26h6.39c-.27 1.34-1.06 2.47-2.31 3.2v3.08h3.97c2.32-2.14 3.65-5.28 3.65-9.28z" fill="#4285F4"/><path d="M12 23c3.04 0 5.6-1.01 7.47-2.75l-3.97-3.08c-1.12.75-2.55 1.2-4 1.2-3.08 0-5.69-2.07-6.62-4.82H1.43v3.18C3.39 20.8 7.37 23 12 23z" fill="#34A853"/><path d="M5.38 14.16c-.2-.59-.31-1.22-.31-1.88s.11-1.29.31-1.88V7.22H1.43c-.63 1.27-.99 2.75-.99 4.38s.36 3.11.99 4.38l3.95-3.18z" fill="#FBBC05"/><path d="M12 4.9c1.67 0 3.15.58 4.31 1.69l3.48-3.37C17.6 1.71 14.9 0 12 0 7.37 0 3.39 2.2 1.43 5.42L5.38 8.6c.93-2.75 3.54-4.82 6.62-4.82z" fill="#EA4335"/></svg>
+                Daftar dengan Google
+            </a>
+        </div>
 
         <div class="footer-link">
             Sudah punya akun? <a href="{{ route('login') }}">Masuk di sini</a>

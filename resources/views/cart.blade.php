@@ -129,7 +129,7 @@
 </div>
 
 {{-- Custom Modal: deskripsi produk --}}
-<div id="productDetailModal" class="modal-overlay">
+<!-- <div id="productDetailModal" class="modal-overlay">
     <div class="modal-content">
         <div class="flex items-center justify-between p-4 border-b">
             <h3 id="product-detail-name" class="font-roboto-slab text-xl font-bold text-green-darker">Detail Produk</h3>
@@ -145,7 +145,7 @@
             <p id="product-detail-description" class="text-gray-700 whitespace-pre-wrap text-sm"></p>
         </div>
     </div>
-</div>
+</div> -->
 @endsection
 
 @push('scripts')
@@ -245,9 +245,9 @@
                 <div class="flex-1 min-w-0 space-y-1">
                     <div class="font-semibold text-green-darker">${i.name}</div>
                     <div class="text-sm text-red-600 font-medium">${rp(i.price)}</div>
-                    <button class="text-xs text-blue-500 hover:text-blue-700 underline" onclick="showProductDetails(${i.id}, '${i.name}', '${i.image_url}', '${rp(i.price)}', '${i.description}', '${i.category}')">Lihat Detail</button>
+                    <a href="/product/${i.product_id}" class="text-xs text-blue-500 hover:text-blue-700 underline">Lihat Detail</a>
                 </div>
-                
+
                 <div class="flex items-center gap-1 flex-shrink-0">
                     <button class="btn btn-secondary px-2 py-1 h-8 w-8" onclick="changeQty(${i.id}, -1)">-</button>
                     <input type="number" class="w-12 text-center border rounded p-1 qty-input text-sm"
@@ -306,14 +306,14 @@
         }
     }
 
-    function showProductDetails(id, name, image_url, price, description, category) {
-        document.getElementById('product-detail-name').textContent = name;
-        document.getElementById('product-detail-image').src = image_url || 'https://placehold.co/500x300/f3f4f6/6b7280?text=Produk';
-        document.getElementById('product-detail-price').textContent = price;
-        document.getElementById('product-detail-category').textContent = `Kategori: ${category}`;
-        document.getElementById('product-detail-description').textContent = description || 'Tidak ada deskripsi tersedia.';
-        openModal('productDetailModal');
-    }
+    // function showProductDetails(id, name, image_url, price, description, category) {
+    //     document.getElementById('product-detail-name').textContent = name;
+    //     document.getElementById('product-detail-image').src = image_url || 'https://placehold.co/500x300/f3f4f6/6b7280?text=Produk';
+    //     document.getElementById('product-detail-price').textContent = price;
+    //     document.getElementById('product-detail-category').textContent = `Kategori: ${category}`;
+    //     document.getElementById('product-detail-description').textContent = description || 'Tidak ada deskripsi tersedia.';
+    //     openModal('productDetailModal');
+    // }
 
     /* ==== Item mutations ==== */
     async function changeQty(itemId, delta) {

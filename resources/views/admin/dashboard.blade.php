@@ -187,17 +187,32 @@
                     <div class="space-y-3">
                         @forelse ($recentOrders as $order)
                             <div class="flex justify-between items-center border-b pb-2">
+                                @php
+                                    $itemCount = $order->orderItems->count();
+                                    $firstItemName = $order->orderItems->first()->product->name ?? 'Produk Dihapus';
+                                    $summaryText = $itemCount > 1 ? 
+                                                $firstItemName . ' dkk. (' . $itemCount . ' item)' : 
+                                                $firstItemName;
+                                @endphp
                                 <div>
                                     <p class="text-sm font-medium text-gray-900">
                                         #{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }} - {{ $order->user->name ?? 'User Dihapus' }}
                                     </p>
                                     <p class="text-xs text-gray-500">
-                                        Rp {{ number_format($order->total, 0, ',', '.') }}
+                                        {{ $summaryText }} | Rp {{ number_format($order->total, 0, ',', '.') }}
                                     </p>
                                 </div>
-                                <span class="status-badge status-{{ str_replace(' ', '-', strtolower($order->status)) }}">
-                                    {{ $order->status }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    {{-- Link ke detail pembayaran yang memuat item --}}
+                                    <a href="{{ route('payment.other', $order->id) }}" target="_blank" 
+                                    class="text-xs text-blue-500 hover:text-blue-700 transition">
+                                    Detail
+                                    </a>
+                                    <span class="status-badge status-{{
+                                        str_replace('','', strtolower($order->status)) }}">
+                                        {{ $order->status }}
+                                    </span>
+                                </div>
                             </div>
                         @empty
                             <p class="text-center text-gray-500 text-sm py-4">Tidak ada pesanan terbaru.</p>
@@ -244,7 +259,7 @@
         <section id="products-section" @if($section !== 'products') style="display: none;" @endif>
             <div class="flex justify-between mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Daftar Produk</h2>
-                <button onclick="openProductModal('add')" class="bg-green-darker hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">
+                <button onclick="openProductModal('add')" class="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded transition">
                     + Tambah Produk Baru
                 </button>
             </div>
@@ -299,7 +314,7 @@
         <section id="categories-section" @if($section !== 'categories') style="display: none;" @endif>
             <div class="flex justify-between mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Daftar Kategori</h2>
-                <button onclick="openCategoryModal('add')" class="bg-green-darker hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition">
+                <button onclick="openCategoryModal('add')" class="bg-green-700 hover:bg-green-800 text-white font-bold py-2 px-4 rounded transition">
                     + Tambah Kategori Baru
                 </button>
             </div>
@@ -358,7 +373,19 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">#{{ str_pad($order->id, 4, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $order->user->name ?? 'User Dihapus' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">Rp {{ number_format($order->total, 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @php
+                                        $itemCount = $order->orderItems->count();
+                                        $totalItems = $order->orderItems->sum('qty');
+                                        $firstItemName = $order->orderItems->first()->product->name ?? 'Produk Dihapus';
+                                        $summary = $itemCount > 1 
+                                                ? $firstItemName . ' dkk. (' . $itemCount . ' jenis, ' . $totalItems . ' total)' 
+                                                : $firstItemName . ' (Total: Rp ' . number_format($order->total, 0, ',', '.') . ')';
+                                    @endphp
+                                    <div title="Total: Rp {{ number_format($order->total, 0, ',', '.') }}">
+                                        {{ $summary }}
+                                    </div>
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->created_at->format('d M Y H:i') }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="status-badge status-{{ str_replace(' ', '-', strtolower($order->status)) }}">
@@ -366,7 +393,12 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button onclick="openStatusModal({{ $order->id }}, '{{ $order->status }}')" class="text-blue-600 hover:text-blue-900 transition">Ubah Status</button>
+                                    <a href="{{ route('payment.other', $order->id) }}" target="_blank" 
+                                        class="text-green-600 hover:text-green-900 transition">
+                                        Detail Pesanan
+                                    </a>
+                                    <button onclick="openStatusModal({{ $order->id }}, '{{ $order->status }}')" class="text-blue-600
+                                        hover:text-blue-900 transition">Ubah Status</button>
                                 </td>
                             </tr>
                         @empty
@@ -495,7 +527,7 @@
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('product-modal')" class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-darker text-white rounded-md hover:bg-green-700">Simpan</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">Simpan</button>
                 </div>
             </form>
         </div>
@@ -516,7 +548,7 @@
                 
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('category-modal')" class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-darker text-white rounded-md hover:bg-green-700">Simpan</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">Simpan</button>
                 </div>
             </form>
         </div>
@@ -548,12 +580,46 @@
                 
                 <div class="flex justify-end space-x-3">
                     <button type="button" onclick="closeModal('user-modal')" class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-green-darker text-white rounded-md hover:bg-green-700">Simpan Perubahan</button>
+                    <button type="submit" class="px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <div id="status-modal" class="modal fixed inset-0 bg-gray-600
+    bg-opacity-75 flex items-center justify-center opacity-0
+    pointer-events-none z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6
+        transform transition-transform duration-300 scale-90">
+            <h3 class="text-2xl font-semibold mb-4 text-gray-800" id="status-modal-title">
+                Ubah Status Pesanan #<span id="order-id-display"></span>
+            </h3>
+            <form id="status-form" method="POST" action="">
+                @csrf
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="id" id="status-order-id">
+                
+                <div class="mb-4">
+                    <label for="new_status" class="block text-sm font-medium text-gray-700">Pilih Status Baru</label>
+                    <select id="new_status" name="status" required
+                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                        <option value="diproses">Diproses</option>
+                        <option value="dikirim">Dikirim</option>
+                        <option value="selesai">Selesai</option>
+                        <option value="dibatalkan">Dibatalkan</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('status-modal')" 
+                            class="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-100">Batal</button>
+                    <button type="submit" class="px-4 py-2
+                            bg-blue-600 text-white rounded-md
+                            hover:bg-blue-700">Simpan Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <script>
         // 1. Chart Penjualan Berdasarkan Kategori (Bar Chart)
@@ -621,7 +687,6 @@
         // =========================================================
         // LOGIKA MODAL & CRUD UNIVERSAL
         // =========================================================
-
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.remove('opacity-0', 'pointer-events-none');
@@ -650,10 +715,12 @@
                 methodInput.value = 'POST';
                 form.reset();
                 isActiveContainer.classList.add('hidden');
-                categorySelect.value = categorySelect.options[0].value; 
+                if(categorySelect.options.length > 0) {
+                    categorySelect.value = categorySelect.options[0].value;
+                }
             } else if (mode === 'edit') {
                 title.textContent = 'Edit Produk: ' + product.name;
-                form.action = `/admin/products/${product.id}`; 
+                form.action = `/admin/products/${product.id}/update`;
                 methodInput.value = 'PUT';
                 isActiveContainer.classList.remove('hidden');
 
@@ -687,7 +754,7 @@
                 form.reset();
             } else if (mode === 'edit') {
                 title.textContent = 'Edit Kategori: ' + category.name;
-                form.action = `/admin/categories/${category.id}`;
+                form.action = `/admin/categories/${category.id}/update`;
                 methodInput.value = 'PUT';
                 nameInput.value = category.name;
             }
@@ -756,39 +823,53 @@
         }
 
         // ---- LOGIKA UPDATE STATUS ORDER ----
-        function openStatusModal(id, currentStatus) {
-            const newStatus = prompt(`Ubah status pesanan #${id}. Status saat ini: ${currentStatus}. Masukkan status baru (diproses, dikirim, selesai, dibatalkan):`);
+        // function openStatusModal(id, currentStatus) {
+        //     const newStatus = prompt(`Ubah status pesanan #${id}. Status saat ini: ${currentStatus}. Masukkan status baru (diproses, dikirim, selesai, dibatalkan):`);
             
-            if (newStatus && ['diproses', 'dikirim', 'selesai', 'dibatalkan'].includes(newStatus.toLowerCase())) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/admin/orders/${id}/status`;
+        //     if (newStatus && ['diproses', 'dikirim', 'selesai', 'dibatalkan'].includes(newStatus.toLowerCase())) {
+        //         const form = document.createElement('form');
+        //         form.method = 'POST';
+        //         form.action = `/admin/orders/${id}/status`;
 
-                const csrf = document.createElement('input');
-                csrf.type = 'hidden';
-                csrf.name = '_token';
-                csrf.value = '{{ csrf_token() }}';
-                form.appendChild(csrf);
+        //         const csrf = document.createElement('input');
+        //         csrf.type = 'hidden';
+        //         csrf.name = '_token';
+        //         csrf.value = '{{ csrf_token() }}';
+        //         form.appendChild(csrf);
 
-                const method = document.createElement('input');
-                method.type = 'hidden';
-                method.name = '_method';
-                method.value = 'PUT';
-                form.appendChild(method);
+        //         const method = document.createElement('input');
+        //         method.type = 'hidden';
+        //         method.name = '_method';
+        //         method.value = 'PUT';
+        //         form.appendChild(method);
 
-                const statusInput = document.createElement('input');
-                statusInput.type = 'hidden';
-                statusInput.name = 'status';
-                statusInput.value = newStatus.toLowerCase();
-                form.appendChild(statusInput);
+        //         const statusInput = document.createElement('input');
+        //         statusInput.type = 'hidden';
+        //         statusInput.name = 'status';
+        //         statusInput.value = newStatus.toLowerCase();
+        //         form.appendChild(statusInput);
 
-                document.body.appendChild(form);
-                form.submit();
-            } else if (newStatus !== null) {
-                alert('Input status tidak valid. Status harus salah satu dari: diproses, dikirim, selesai, dibatalkan.');
-            }
+        //         document.body.appendChild(form);
+        //         form.submit();
+        //     } else if (newStatus !== null) {
+        //         alert('Input status tidak valid. Status harus salah satu dari: diproses, dikirim, selesai, dibatalkan.');
+        //     }
+        // }
+        function openStatusModal(orderId, currentStatus) {
+            const paddedId = String(orderId).padStart(4, '0');
+            
+            // Setel elemen di modal
+            document.getElementById('order-id-display').textContent = paddedId;
+            document.getElementById('status-order-id').value = orderId;
+            document.getElementById('new_status').value = currentStatus.toLowerCase();
+
+            // Setel action form
+            const form = document.getElementById('status-form');
+            form.action = '/admin/orders/' + orderId + '/status';
+            
+            // Tampilkan modal
+            openModal('status-modal');
         }
-
     </script>
 </body>
 </html>
