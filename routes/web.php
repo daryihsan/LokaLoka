@@ -12,7 +12,7 @@ use App\Http\Controllers\AvatarController;
 
 // Redirect root to login
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('homepage');
 });
 
 // Authentication routes
@@ -21,6 +21,12 @@ Route::post('/login', [AuthController::class, 'processLogin'])->name('login.proc
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'processRegister'])->name('register.process');
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
+
+// =======================================================
+// BARU: SOCIALITE ROUTES (SKELETON)
+// =======================================================
+Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('google.callback');
 
 // =======================================================
 // USER/CUSTOMER ROUTES (Cek Session di Controller)

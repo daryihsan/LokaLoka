@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Exception;
+use Laravel\Socialite\Facades\Socialite; // BARU
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -47,6 +51,13 @@ class AuthController extends Controller
             // PERBAIKAN: Cek kolom 'approved' (TINYINT)
             if ($user->approved == 0) { 
                 return back()->withErrors(['login' => 'Akun Anda belum disetujui oleh admin.'])->withInput($request->except('password'));
+            }
+
+            // Cek Email Verifikasi (untuk User non-Google yang mendaftar)
+            if ($user->email_verified_at === null && !$user->google_id) {
+                // Untuk lingkungan non-production, kita bisa biarkan login.
+                // Jika ingin memblokir, uncomment baris ini:
+                // return back()->withErrors(['login' => 'Akun Anda belum diverifikasi. Silakan cek email Anda.'])->withInput($request->except('password'));
             }
 
             // --- Jika Approved, LANJUT ---
@@ -114,9 +125,12 @@ class AuthController extends Controller
                 'password_hash' => Hash::make($request->password),
                 'role' => 'customer',
                 'approved' => 0, // DEFAULT: Belum disetujui
+                'email_verified_at' => null, // Belum diverifikasi
             ]);
 
             if ($user) {
+                // BARU: Jika menggunakan fitur verifikasi email, kirim notifikasi:
+                // $user->sendEmailVerificationNotification();
                 return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda akan aktif setelah disetujui admin.');
             } else {
                 return back()->withErrors(['register' => 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.'])->withInput($request->except('password', 'password_confirmation'));
@@ -207,7 +221,53 @@ class AuthController extends Controller
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui!');
     }
 
+    // BARU: LOGIKA SOCIALITE (SKELETON)
+    // =======================================================
 
+    // Redirect ke Google
+    public function redirectToGoogle()
+    {
+        // Jika Socialite terinstal, uncomment baris ini:
+        // return Socialite::driver('google')->redirect(); 
+        
+        // Karena ini skeleton, kita langsung redirect dengan error
+        return redirect()->route('login')->withErrors(['google_socialite' => 'Fitur Google Login (Socialite) belum diimplementasikan sepenuhnya. Harap gunakan formulir standar.']);
+    }
+
+    // Handle Callback dari Google
+    public function handleGoogleCallback(Request $request)
+    {
+        // Karena ini skeleton, kita langsung redirect dengan error
+        /*
+        // Code untuk Socialite di sini
+        $googleUser = Socialite::driver('google')->stateless()->user();
+        $user = Users::where('google_id', $googleUser->getId())
+                    ->orWhere('email', $googleUser->getEmail())
+                    ->first();
+
+        if (!$user) {
+            $user = Users::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+                'password_hash' => Hash::make(Str::random(16)), 
+                'role' => 'customer',
+                'approved' => 1, // Auto-approved
+                'email_verified_at' => now(), // Auto-verified
+                'avatar_url' => $googleUser->getAvatar(),
+            ]);
+        }
+        
+        // Loginkan user dan set sesi
+        Session::put('logged_in', true);
+        Session::put('user_id', $user->id);
+        // ... set session lainnya
+        return redirect()->route('homepage')->with('success', 'Login berhasil dengan Google!');
+        */
+        
+        return redirect()->route('login')->withErrors(['google_socialite' => 'Fitur Google Login (Socialite) belum diimplementasikan sepenuhnya. Harap gunakan formulir standar.']);
+    }
+    
     // Show user orders page (sudah disatukan di showProfile, ini hanya fallback jika ada rute terpisah)
     public function showOrders()
     {

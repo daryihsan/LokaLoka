@@ -61,9 +61,25 @@
                 @foreach($orders as $order)
                     @php
                         $status = strtolower($order->status ?? 'diproses');
-                        // Ambil nama produk pertama dari orderItems
-                        $firstItemName = $order->orderItems->first()->product->name ?? 'Produk Dihapus';
-                        
+                        $itemNames = $order->orderItems->map(function ($item) {
+                            return "{$item->qty}x {$item->product->name}";
+                        })->toArray();
+
+                        $itemCount = count($itemNames);
+                        $summaryText = '';
+                        $tooltipText = '';
+
+                        if ($itemCount === 1) {
+                            $summaryText = $itemNames[0];
+                            $tooltipText = $itemNames[0];
+                        } elseif ($itemCount > 1) {
+                            $summaryText = $itemNames[0] . ' dkk. (' . $itemCount . ' item)';
+                            $tooltipText = implode("\n", $itemNames); // Untuk tooltip
+                        } else {
+                            $summaryText = 'Tidak ada item';
+                            $tooltipText = 'Tidak ada item';
+                        }
+
                         $badge = match ($status) {
                             'selesai' => 'bg-green-100 text-green-700',
                             'dikirim' => 'bg-blue-100 text-blue-700',
@@ -72,19 +88,36 @@
                             default => 'bg-gray-100 text-gray-700'
                         };
                     @endphp
-                    {{-- Tambahkan data-status untuk filter JS --}}
-                    <div class="order-item flex items-center justify-between py-3" data-status="{{ $status }}">
-                        <div class="order-details flex-1 min-w-0">
-                            <p class="font-semibold text-green-darker">#{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }} - {{ $firstItemName }}...</p>
-                            <p class="order-status text-sm text-gray-600">Status:
-                                <span class="status px-2 py-0.5 rounded {{ $badge }}">{{ ucfirst($status) }}</span>
-                            </p>
-                        </div>
-                        <div class="text-right text-sm text-gray-600 ml-4">
-                            <div>{{ $order->created_at->format('d M Y') }}</div>
-                            <div class="font-semibold text-green-800">Rp {{ number_format($order->total ?? 0, 0, ',', '.') }}</div>
-                        </div>
-                    </div>
+                    <a href="{{ route('payment.other', $order->id) }}" class="block order-item hover:bg-gray-50 transition duration-150" 
+                        data-status="{{ $status }}" title="Rincian Pesanan:&#10;{{ $tooltipText }}">
+                            <div class="flex items-center justify-between py-3">
+                                <div class="order-details flex-1 min-w-0">
+                                
+                                <p class="font-semibold
+                                text-green-darker">#{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }} -
+                                {{ $summaryText }}</p>
+                                
+                                <p class="order-status text-sm
+                                text-gray-600">Status:
+                                
+                                <span class="status px-2 py-0.5 rounded
+                                {{ $badge }}">{{ ucfirst($status) }}</span>
+                                </p>
+                                </div>
+                                
+                                <div class="text-right text-sm text-gray-600
+                                ml-4">
+                                
+                                
+                                <div>{{ $order->created_at->format('d M Y')
+                                }}</div>
+                                
+                                <div class="font-semibold
+                                text-green-800">Rp {{ number_format($order->total ?? 0, 0, ',', '.')
+                                }}</div>
+                                </div>
+                            </div>
+                        </a>
                 @endforeach
             @else
                 <p id="no-orders-message" class="text-center text-gray-500 py-4">Anda belum memiliki pesanan.</p>
@@ -188,6 +221,8 @@
         </div>
     </div>
 </div>
+
+
 @endsection
 
 @push('scripts')

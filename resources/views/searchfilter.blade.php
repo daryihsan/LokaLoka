@@ -117,18 +117,30 @@
     {{-- Script ini sama dengan yang ada di homepage.blade.php --}}
     <script>
         function showToast(type, message) {
-            const toast = document.getElementById('toast-notification');
-            const toastMessage = document.getElementById('toast-message');
+            // Pastikan kita menggunakan wadah notifikasi global yang baru
+            const toast = document.getElementById('toast-notification-global');
+            const toastMessage = document.getElementById('toast-message-global');
+            if (!toast || !toastMessage) return;
+
             if (type === 'success') {
                 toast.style.backgroundColor = '#d1fae5';
                 toastMessage.style.color = '#059669';
             } else {
-                toast.style.backgroundColor = 'fee2e2';
+                toast.style.backgroundColor = '#fee2e2';
                 toastMessage.style.color = '#dc2626';
             }
             toastMessage.textContent = message;
-            toast.classList.remove('translate-x-full');
-            setTimeout(() => toast.classList.add('translate-x-full'), 3000);
+            
+            // Aktifkan dan tampilkan (perbaikan "Ghost Toast")
+            toast.classList.remove('translate-x-full', 'pointer-events-none');
+            toast.classList.add('pointer-events-auto');
+
+            // Sembunyikan setelah 3 detik
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                // Setelah animasi selesai, nonaktifkan pointer events
+                setTimeout(() => toast.classList.add('pointer-events-none'), 300);
+            }, 3000);
         }
 
         function addToCart(event, productId) {

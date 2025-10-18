@@ -48,7 +48,7 @@
         @include('layouts.header')
     @endunless
 
-    @if (session('success'))
+    <!-- @if (session('success'))
     <div class="container-page">
         <div class="alert alert-success">{{ session('success') }}</div>
     </div>
@@ -62,7 +62,7 @@
             @endforeach
         </div>
     </div>
-    @endif
+    @endif -->
 
     <main class="container-page">
         @yield('content')
