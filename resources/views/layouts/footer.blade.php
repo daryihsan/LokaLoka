@@ -18,10 +18,12 @@
     <div>
       <h3 class="font-semibold text-green-darker mb-3">Navigasi</h3>
       <ul class="space-y-2 text-sm">
+
         <li><a class="text-white hover:text-white" href="{{ route('homepage') }}">Beranda</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('searchfilter') }}">Katalog</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('cart.show') }}">Keranjang</a></li>
         <li><a class="text-white hover:text-white" href="{{ route('profile') }}">Profile</a></li>
+
       </ul>
     </div>
 
