@@ -60,7 +60,6 @@ class Users extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the name of the password field.
-     * Since we're using 'password_hash' instead of 'password'
      *
      * @return string
      */

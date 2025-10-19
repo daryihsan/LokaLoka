@@ -21,7 +21,7 @@ class AvatarController extends Controller
         $validated = $request->validate([
             'avatar_url' => 'required|url|max:255',
         ]);
-        
+
         // 3. Simpan URL ke Session
         Session::put('user_avatar', $validated['avatar_url']);
 

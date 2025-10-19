@@ -24,9 +24,19 @@ class ProductController extends Controller
             ->join('order_items', 'products.id', '=', 'order_items.product_id')
             ->where('is_active', true) // Produk aktif saja
             ->where('stock', '>', 0)   // Produk dengan stok > 0
-            ->groupBy('products.id', 'products.name', 'products.price', 
-                'products.description', 'products.image_url', 'products.weight', 'products.stock',
-                'products.category_id', 'products.is_active', 'products.created_at', 'products.updated_at')
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.price',
+                'products.description',
+                'products.image_url',
+                'products.weight',
+                'products.stock',
+                'products.category_id',
+                'products.is_active',
+                'products.created_at',
+                'products.updated_at'
+            )
             ->orderByDesc('total_sold')
             ->take(4)
             ->get();
@@ -74,18 +84,6 @@ class ProductController extends Controller
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
-        
-        // 4. Filter Lokasi (ASUMSI: Anda memiliki kolom 'location' di tabel products)
-        if ($request->filled('location')) {
-            // Asumsi: products.location ada
-            $query->where('location', 'like', '%' . $request->location . '%'); 
-        }
-        
-        // 5. Filter Rating (ASUMSI: Anda memiliki kolom 'rating' di tabel products atau relasi rating)
-        if ($request->filled('min_rating')) {
-             // Asumsi: products.rating ada
-            $query->where('rating', '>=', $request->min_rating); 
-        }
 
         // Sorting / Urutan
         switch ($request->sort) {
@@ -106,10 +104,6 @@ class ProductController extends Controller
             case 'price_desc':    // Termahal
                 $query->orderBy('price', 'desc');
                 break;
-            case 'rating_desc':
-                 // Asumsi: products.rating ada
-                $query->orderBy('rating', 'desc');
-                break;
             default:
                 // Urutan default: terbaru
                 $query->latest();
@@ -126,10 +120,7 @@ class ProductController extends Controller
             $user = Users::find(Session::get('user_id'));
         }
 
-        // List Lokasi dummy (Ganti ini dengan data DB jika ada tabel lokasi)
-        $locations = ['Semarang', 'Yogyakarta', 'Bandung', 'Jakarta']; 
-
-        return view('searchfilter', compact('products', 'categories', 'user', 'total', 'locations'));
+        return view('searchfilter', compact('products', 'categories', 'user', 'total'));
     }
 
     /**
@@ -138,13 +129,13 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = Products::with('category')->findOrFail($id);
-        
+
         // Ambil data user yang sedang login untuk ditampilkan di header/button
         $user = null;
         if (Session::has('user_id')) {
             $user = Users::find(Session::get('user_id'));
         }
-        
+
         return view('product', compact('product', 'user'));
     }
 }

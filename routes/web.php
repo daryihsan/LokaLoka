@@ -10,7 +10,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\AvatarController;
 
-// Redirect root to login
+// Redirect root to homepage
 Route::get('/', function () {
     return redirect()->route('homepage');
 });
@@ -23,7 +23,7 @@ Route::post('/register', [AuthController::class, 'processRegister'])->name('regi
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
 // =======================================================
-// BARU: SOCIALITE ROUTES (SKELETON)
+// SOCIALITE ROUTES (SKELETON)
 // =======================================================
 Route::get('/auth/google/redirect', [AuthController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('google.callback');
@@ -73,27 +73,27 @@ Route::view('/syarat-ketentuan', 'etc.terms&conditions')->name('terms');
 Route::view('/about', 'etc.about')->name('about');
 
 // =======================================================
-// ADMIN ROUTES (Tidak ada perubahan di sini kecuali ada yang spesifik)
+// ADMIN ROUTES 
 // =======================================================
 
 Route::prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    
+
     // PRODUCTS
     Route::post('/products/store', [AdminController::class, 'storeProduct'])->name('admin.products.store');
     Route::put('/products/{id}/update', [AdminController::class, 'updateProduct'])->name('admin.products.update');
     Route::delete('/products/{id}', [AdminController::class, 'deleteProduct'])->name('admin.products.delete');
-    
+
     // CATEGORIES
     Route::post('/categories/store', [AdminController::class, 'storeCategory'])->name('admin.categories.store');
     Route::put('/categories/{id}/update', [AdminController::class, 'updateCategory'])->name('admin.categories.update');
     Route::delete('/categories/{id}', [AdminController::class, 'deleteCategory'])->name('admin.categories.delete');
-    
+
     // USERS (Approval & Edit)
     Route::put('/users/{id}/update', [AdminController::class, 'updateUser'])->name('admin.users.update');
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
     Route::post('/users/{id}/approve', [AdminController::class, 'approveUser'])->name('admin.users.approve');
-    
+
     // ORDERS
     Route::put('/orders/{id}/status', [AdminController::class, 'updateOrderStatus'])->name('admin.orders.status');
 });

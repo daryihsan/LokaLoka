@@ -13,7 +13,7 @@ class Sessions extends Model
      * The attributes that are mass assignable.
      *
      * @var list<string>
-     */ 
+     */
     protected $table = "sessions";
     protected $fillable = [
         'user_id',

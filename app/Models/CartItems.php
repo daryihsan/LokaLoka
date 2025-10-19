@@ -16,7 +16,7 @@ class CartItems extends Model
      */
 
     public $timestamps = false;
-    
+
     protected $fillable = [
         'cart_id',
         'product_id',

@@ -3,7 +3,8 @@
 @section('title', 'Syarat & Ketentuan - Loka Loka')
 
 @push('head')
-<meta name="description" content="Syarat dan Ketentuan penggunaan layanan Loka Loka. Harap baca dengan saksama sebelum menggunakan layanan kami.">
+    <meta name="description"
+        content="Syarat dan Ketentuan penggunaan layanan Loka Loka. Harap baca dengan saksama sebelum menggunakan layanan kami.">
 @endpush
 
 @section('content')
@@ -33,22 +34,26 @@
 
         <section id="perubahan" class="mb-6">
             <h2 class="text-2xl font-roboto-slab text-green-darker mb-2">Perubahan</h2>
-            <p class="text-gray-800">Kami dapat memperbarui Syarat & Ketentuan dari waktu ke waktu. Versi terbaru akan dipublikasikan di halaman ini.</p>
+            <p class="text-gray-800">Kami dapat memperbarui Syarat & Ketentuan dari waktu ke waktu. Versi terbaru akan
+                dipublikasikan di halaman ini.</p>
         </section>
 
         <section id="penggunaan-layanan" class="mb-6">
             <h2 class="text-2xl font-roboto-slab text-green-darker mb-2">Penggunaan Layanan</h2>
-            <p class="text-gray-800">Anda setuju untuk menggunakan layanan sesuai hukum yang berlaku, tidak menyalahgunakan fitur, dan menjaga keamanan akun.</p>
+            <p class="text-gray-800">Anda setuju untuk menggunakan layanan sesuai hukum yang berlaku, tidak menyalahgunakan
+                fitur, dan menjaga keamanan akun.</p>
         </section>
 
         <section id="pembayaran" class="mb-6">
             <h2 class="text-2xl font-roboto-slab text-green-darker mb-2">Pembayaran</h2>
-            <p class="text-gray-800">Ketentuan pembayaran mengikuti metode yang tersedia dan kebijakan pengembalian dana yang relevan.</p>
+            <p class="text-gray-800">Ketentuan pembayaran mengikuti metode yang tersedia dan kebijakan pengembalian dana
+                yang relevan.</p>
         </section>
 
         <section id="batasan-tanggung-jawab" class="mb-6">
             <h2 class="text-2xl font-roboto-slab text-green-darker mb-2">Batasan Tanggung Jawab</h2>
-            <p class="text-gray-800">Loka Loka tidak bertanggung jawab atas kerugian tidak langsung atau konsekuensial yang timbul dari penggunaan layanan.</p>
+            <p class="text-gray-800">Loka Loka tidak bertanggung jawab atas kerugian tidak langsung atau konsekuensial yang
+                timbul dari penggunaan layanan.</p>
         </section>
 
         <section id="hukum-yang-berlaku" class="mb-6">
@@ -58,7 +63,8 @@
 
         <section id="kontak" class="mb-6">
             <h2 class="text-2xl font-roboto-slab text-green-darker mb-2">Kontak</h2>
-            <p class="text-gray-800">Untuk pertanyaan terkait Syarat & Ketentuan, silakan hubungi kami melalui informasi kontak yang tersedia.</p>
+            <p class="text-gray-800">Untuk pertanyaan terkait Syarat & Ketentuan, silakan hubungi kami melalui informasi
+                kontak yang tersedia.</p>
         </section>
     </article>
 @endsection
