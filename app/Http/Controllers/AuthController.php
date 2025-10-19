@@ -43,20 +43,20 @@ class AuthController extends Controller
         }
 
         $user = Users::where('email', $request->email)
-                     ->orWhere('name', $request->email)
-                     ->first();
+            ->orWhere('name', $request->email)
+            ->first();
 
         if ($user && Hash::check($request->password, $user->password_hash)) {
-            
+
             // PERBAIKAN: Cek kolom 'approved' (TINYINT)
-            if ($user->approved == 0) { 
+            if ($user->approved == 0) {
                 return back()->withErrors(['login' => 'Akun Anda belum disetujui oleh admin.'])->withInput($request->except('password'));
             }
 
             // Cek Email Verifikasi (untuk User non-Google yang mendaftar)
             if ($user->email_verified_at === null && !$user->google_id) {
                 // Untuk lingkungan non-production, kita bisa biarkan login.
-                // Jika ingin memblokir, uncomment baris ini:
+                // Jika ingin memblokir, uncomment baris di bawah:
                 // return back()->withErrors(['login' => 'Akun Anda belum diverifikasi. Silakan cek email Anda.'])->withInput($request->except('password'));
             }
 
@@ -68,9 +68,9 @@ class AuthController extends Controller
             Session::put('username', $user->name);
             Session::put('user_email', $user->email);
             Session::put('user_role', $user->role);
-            Session::put('user_status', $userStatus); 
+            Session::put('user_status', $userStatus);
 
-            
+
             $request->session()->regenerate();
 
             if ($user->role === 'admin') {
@@ -129,7 +129,7 @@ class AuthController extends Controller
             ]);
 
             if ($user) {
-                // BARU: Jika menggunakan fitur verifikasi email, kirim notifikasi:
+                // Jika menggunakan fitur verifikasi email, kirim notifikasi:
                 // $user->sendEmailVerificationNotification();
                 return redirect()->route('login')->with('success', 'Registrasi berhasil! Akun Anda akan aktif setelah disetujui admin.');
             } else {
@@ -168,8 +168,8 @@ class AuthController extends Controller
         }
 
         // Ambil data pesanan user (asumsi relasi sudah benar)
-        $orders = $user->orders()->latest()->get(); 
-        
+        $orders = $user->orders()->latest()->get();
+
         $avatars = [
             'https://i.pravatar.cc/150?img=1',
             'https://i.pravatar.cc/150?img=3',
@@ -180,7 +180,7 @@ class AuthController extends Controller
 
         return view('profile', compact('user', 'orders', 'avatars'));
     }
-    
+
     // Process profile update (placeholder)
     public function updateProfile(Request $request)
     {
@@ -203,7 +203,7 @@ class AuthController extends Controller
             'phone_number' => 'required|string|max:20',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
-        
+
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
@@ -212,24 +212,24 @@ class AuthController extends Controller
         if ($request->filled('password')) {
             $data['password_hash'] = Hash::make($request->password);
         }
-        
+
         $user->update($data);
-        
+
         Session::put('username', $user->name);
         Session::put('user_email', $user->email);
 
         return redirect()->route('profile')->with('success', 'Profil berhasil diperbarui!');
     }
 
-    // BARU: LOGIKA SOCIALITE (SKELETON)
+    // LOGIKA SOCIALITE (SKELETON)
     // =======================================================
 
     // Redirect ke Google
     public function redirectToGoogle()
     {
-        // Jika Socialite terinstal, uncomment baris ini:
+        // Jika Socialite terinstal, uncomment baris di bawah:
         // return Socialite::driver('google')->redirect(); 
-        
+
         // Karena ini skeleton, kita langsung redirect dengan error
         return redirect()->route('login')->withErrors(['google_socialite' => 'Fitur Google Login (Socialite) belum diimplementasikan sepenuhnya. Harap gunakan formulir standar.']);
     }
@@ -257,17 +257,17 @@ class AuthController extends Controller
                 'avatar_url' => $googleUser->getAvatar(),
             ]);
         }
-        
+
         // Loginkan user dan set sesi
         Session::put('logged_in', true);
         Session::put('user_id', $user->id);
         // ... set session lainnya
         return redirect()->route('homepage')->with('success', 'Login berhasil dengan Google!');
         */
-        
+
         return redirect()->route('login')->withErrors(['google_socialite' => 'Fitur Google Login (Socialite) belum diimplementasikan sepenuhnya. Harap gunakan formulir standar.']);
     }
-    
+
     // Show user orders page (sudah disatukan di showProfile, ini hanya fallback jika ada rute terpisah)
     public function showOrders()
     {
@@ -275,7 +275,6 @@ class AuthController extends Controller
         if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
             return redirect()->route('login')->withErrors(['access' => 'Silakan login terlebih dahulu.']);
         }
-        // ===========================
 
         return redirect()->route('profile');
     }

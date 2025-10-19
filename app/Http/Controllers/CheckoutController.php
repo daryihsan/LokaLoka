@@ -17,7 +17,7 @@ class CheckoutController extends Controller
     private function checkAuth()
     {
         return Session::has('logged_in') && Session::get('logged_in') === true &&
-               Session::has('user_id');
+            Session::has('user_id');
     }
 
     private function getUserCart()
@@ -45,7 +45,7 @@ class CheckoutController extends Controller
             return Redirect::route('cart.show')->with('error', 'Keranjang Anda kosong atau belum memilih produk.');
         }
 
-        // Kita hanya mengambil item yang ada di keranjang, meskipun data final akan datang dari JS (sessionStorage)
+        // Hanya mengambil item yang ada di keranjang, meskipun data final akan datang dari JS (sessionStorage)
         // ketika tombol checkout diproses.
         $cartItems = $cart->cartItems;
         $totalHargaProduk = $cartItems->sum(function ($item) {
@@ -57,7 +57,7 @@ class CheckoutController extends Controller
 
     /**
      * Memproses checkout dan membuat order.
-     * PERBAIKAN: Logika ini memastikan transaksi berjalan atomik.
+     * Logika ini memastikan transaksi berjalan atomik.
      */
     public function processCheckout(Request $request)
     {
@@ -84,8 +84,10 @@ class CheckoutController extends Controller
         $total = 0;
 
         // 2. Cek Stok dan Hitung Total (KRUSIAL)
-        $productStockMap = Products::whereIn('id',
-            collect($selectedItemsData)->pluck('product_id'))->pluck('stock', 'id');
+        $productStockMap = Products::whereIn(
+            'id',
+            collect($selectedItemsData)->pluck('product_id')
+        )->pluck('stock', 'id');
 
         foreach ($selectedItemsData as $item) {
             $productId = $item['product_id'];
@@ -131,7 +133,7 @@ class CheckoutController extends Controller
 
             // C. Cek apakah keranjang kosong setelah penghapusan
             if (CartItems::where('cart_id', $cart->id)->count() === 0) {
-                // PENTING: Jangan hapus cart jika kita ingin user_id tetap punya record cart.
+                // PENTING: Jangan hapus cart jika ingin user_id tetap punya record cart.
                 // $cart->delete(); 
             }
 

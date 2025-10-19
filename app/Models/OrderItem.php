@@ -15,7 +15,7 @@ class OrderItem extends Model
      * @var list<string>
      */
 
-    public $timestamps = false; 
+    public $timestamps = false;
 
     protected $fillable = [
         'order_id',

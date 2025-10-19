@@ -3,10 +3,12 @@
     <!-- Brand -->
     <div>
       <div class="mb-4">
-            {{-- Menggunakan mix-blend-mode: multiply untuk memastikan transparansi pada latar belakang berwarna --}}
-          <img src="{{ asset('images/logo.png') }}" alt="Logo Loka Loka" class="w-24 h-auto object-contain" style="background: none; mix-blend-mode: multiply;">
+        {{-- Menggunakan mix-blend-mode: multiply untuk memastikan transparansi pada latar belakang berwarna --}}
+        <img src="{{ asset('images/logo.png') }}" alt="Logo Loka Loka" class="w-24 h-auto object-contain"
+          style="background: none; mix-blend-mode: multiply;">
       </div>
-      <a href="{{ route('homepage') }}" class="font-roboto-slab text-2xl font-bold text-green-darker hover:text-[var(--brand-accent)]">
+      <a href="{{ route('homepage') }}"
+        class="font-roboto-slab text-2xl font-bold text-green-darker hover:text-[var(--brand-accent)]">
         <span class="text-green-darker">Loka</span><span class="text-[var(--brand-accent)]">Loka</span>
       </a>
       <p class="text-white hover:text-white">

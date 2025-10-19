@@ -3,7 +3,8 @@
 @section('title', 'FAQ - Loka Loka')
 
 @push('head')
-<meta name="description" content="Pertanyaan yang sering diajukan (FAQ) tentang layanan, pemesanan, pembayaran, dan kebijakan di Loka Loka.">
+    <meta name="description"
+        content="Pertanyaan yang sering diajukan (FAQ) tentang layanan, pemesanan, pembayaran, dan kebijakan di Loka Loka.">
 @endpush
 
 @section('content')
@@ -22,28 +23,35 @@
             </details>
 
             <details class="card p-4">
-                <summary class="cursor-pointer font-semibold text-green-darker">Metode pembayaran apa saja yang didukung?</summary>
+                <summary class="cursor-pointer font-semibold text-green-darker">Metode pembayaran apa saja yang didukung?
+                </summary>
                 <div class="mt-2 text-gray-800">
-                    Kami mendukung berbagai metode pembayaran yang ditampilkan saat checkout. Ikuti instruksi pada halaman pembayaran.
+                    Kami mendukung berbagai metode pembayaran yang ditampilkan saat checkout. Ikuti instruksi pada halaman
+                    pembayaran.
                 </div>
             </details>
 
             <details class="card p-4">
-                <summary class="cursor-pointer font-semibold text-green-darker">Apakah saya bisa membatalkan pesanan?</summary>
+                <summary class="cursor-pointer font-semibold text-green-darker">Apakah saya bisa membatalkan pesanan?
+                </summary>
                 <div class="mt-2 text-gray-800">
-                    Pembatalan mengikuti kebijakan masing‑masing produk/penjual. Silakan cek detail pesanan Anda atau hubungi dukungan.
+                    Pembatalan mengikuti kebijakan masing-masing produk/penjual. Silakan cek detail pesanan Anda atau
+                    hubungi dukungan.
                 </div>
             </details>
 
             <details class="card p-4">
-                <summary class="cursor-pointer font-semibold text-green-darker">Bagaimana cara mengubah alamat pengiriman?</summary>
+                <summary class="cursor-pointer font-semibold text-green-darker">Bagaimana cara mengubah alamat pengiriman?
+                </summary>
                 <div class="mt-2 text-gray-800">
-                    Masuk ke profil Anda dan perbarui alamat pada bagian Alamat. Perubahan setelah pesanan dibuat mungkin terbatas.
+                    Masuk ke profil Anda dan perbarui alamat pada bagian Alamat. Perubahan setelah pesanan dibuat mungkin
+                    terbatas.
                 </div>
             </details>
 
             <details class="card p-4">
-                <summary class="cursor-pointer font-semibold text-green-darker">Saya mengalami kendala. Ke mana harus menghubungi?</summary>
+                <summary class="cursor-pointer font-semibold text-green-darker">Saya mengalami kendala. Ke mana harus
+                    menghubungi?</summary>
                 <div class="mt-2 text-gray-800">
                     Hubungi dukungan pelanggan melalui formulir kontak atau email yang tercantum di footer.
                 </div>

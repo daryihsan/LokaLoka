@@ -20,11 +20,11 @@ class PaymentController extends Controller
         // Generate random unique payment code
         $paymentCode = 'LOKALOKA' . uniqid() . $order->id;
 
-        // PERBAIKAN: Gunakan SVG QR Code untuk kompatibilitas yang lebih baik
+        // Gunakan SVG QR Code untuk kompatibilitas yang lebih baik
         $qrCode = QrCode::size(300)
             ->format('svg')
             ->generate("ID.CO.QRIS.WWW.LOKALOKA.COM.PAYMENT/($paymentCode)");
-            
+
         return view('qr', compact('order', 'qrCode', 'paymentCode'));
     }
 
@@ -42,14 +42,14 @@ class PaymentController extends Controller
 
         if (($order->payment_method ?? null) === 'transfer_bank') {
             // Kode unik 3 digit berbasis id agar konsisten setiap kali dibuka
-            $uniqueCode = str_pad((string)(($order->id % 999)), 3, '0', STR_PAD_LEFT);
-            $payableTotal = (int)$order->total + (int)$uniqueCode;
+            $uniqueCode = str_pad((string) (($order->id % 999)), 3, '0', STR_PAD_LEFT);
+            $payableTotal = (int) $order->total + (int) $uniqueCode;
         }
 
         // COD: jika status order sudah selesai/diterima, tampilkan indikator
         $isReceived = false;
         if (($order->payment_method ?? null) === 'cod') {
-            $status = strtolower((string)($order->status ?? ''));
+            $status = strtolower((string) ($order->status ?? ''));
             $isReceived = in_array($status, ['delivered', 'completed', 'received', 'done']);
         }
 

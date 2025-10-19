@@ -15,7 +15,7 @@ class AlamatController extends Controller
         if (!Session::has('logged_in') || Session::get('logged_in') !== true) {
             return Redirect::route('login')->withErrors(['access' => 'Silakan login terlebih dahulu.']);
         }
-        
+
         // Ambil data user yang sedang login untuk default value
         $userId = Session::get('user_id');
         $user = Users::find($userId);
@@ -46,7 +46,7 @@ class AlamatController extends Controller
             'phoneNumber' => 'required|string|max:20',
             'streetAddress' => 'required|string|max:500',
         ]);
-        
+
         $namaLengkap = $request->input('fullName');
         $nomorTelepon = $request->input('phoneNumber');
         $alamatLengkap = $request->input('streetAddress');
